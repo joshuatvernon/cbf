@@ -687,7 +687,7 @@ function runCLI() {
 }
 
 program
-    .version('1.1.0')
+    .version('1.0.0')
     .usage('[options]')
     .option('-l --list', 'list previously saved scripts')
     .option('-s --save [path to .yml file]', 'process and save a script')
