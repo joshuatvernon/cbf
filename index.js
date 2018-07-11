@@ -14,11 +14,6 @@ const configFilePath = __dirname + '/config.json';
 // config
 let config = {
     shell: '/bin/bash',
-    default: {
-        setting: 'most-recent',
-        defaultScriptName: '',
-        mostRecentScriptName: ''
-    },
     scripts: {}
 }
 
@@ -27,10 +22,8 @@ let currentScript = {
     name: '',
     questions: {},
     commands: {},
-    exitCommands: {}
+    directories: {}
 }
-
-let shouldContinueCheckFlag = false;
 
 /**
  * Message factory
@@ -39,17 +32,20 @@ let message = (function () {
     return function (messageType, ...args) {
         let message = '';
         switch (messageType) {
-            case 'mostRecentScriptOrHelp':
-                // args[0] = most recent script
-                message = 'Run ' + chalk.blue.bold(args[0]) + ' or display help?';
+            case 'menu':
+                message = 'Run a script or display help?';
                 break;
             case 'shellSet':
                 // args[0] = shell to be set
                 message = 'Shell was set to ' + chalk.blue.bold(args[0]);
                 break;
+            case 'commandMessage':
+                // args[0] = command message to be printed
+                message = '\n' + args[0] + '\n';
+                break;
             case 'runCommand':
-                // args[0] = command to be run
-                message = 'Running: ' + chalk.blue.bold(args[0]);
+                // args[0] = command to be run, args[1] = directory to run command in
+                message = '\nRunning: ' + chalk.blue.bold(args[0]) + ' in ' + chalk.blue.bold(args[1]) + '\n';
                 break;
             case 'printConfig':
                 // args[0] = config
@@ -96,9 +92,6 @@ let message = (function () {
                 // args[0] = pre-existing script
                 message = 'A script with the name ' + chalk.blue.bold(args[1]) + ' already exists.\n\nTry running ' + chalk.blue.bold('deathstar -u ' + args[0] + ' ' + args[1]);
                 break;
-            case 'defaultScriptSet':
-                // args[0] = default script
-                message = 'Default script set to ' + chalk.blue.bold(args[0]);
             case 'quit':
                 message = 'Bye ✌️';
         }
@@ -115,9 +108,6 @@ let error = (function () {
         switch (errorType) {
             case 'noSavedScripts':
                 errorMessage = 'You have no saved scripts.\n\nYou can save a script by using ' + chalk.blue.bold('deathstar -s [path to .yml file]');
-                break;
-            case 'noDefaultScript':
-                errorMessage = 'A default script has not been set yet\n\nTry setting it by using ' + chalk.blue.bold('deathstar -D');
                 break;
             case 'errorDeletingScript':
                 // args[0] = script to be deleted
@@ -142,10 +132,6 @@ let error = (function () {
                 // args[0] = script to be run
                 errorMessage = 'There is currently no saved script with the name ' + chalk.blue.bold(args[0]) + '\n\nTry resaving it by using ' + chalk.blue.bold('deathstar -s [path to .yml file]');
                 break;
-            case 'defaultScriptDoesNotExist':
-                // args[0] = default script
-                errorMessage = 'The default ' + chalk.blue.bold(args[0]) + ' script doesn\'t exist anymore. It has been removed as the default script.\n\nTry resaving it by using ' + chalk.blue.bold('deathstar -s [path to .yml file]');
-                break;
             case 'errorRunningCommand':
                 // args[0] = command to be run, args[1] = error message
                 errorMessage = 'Error executing ' + chalk.blue.bold(args[0]) + ' command\n\n' + chalk.red.bold(args[1]);
@@ -160,10 +146,20 @@ let error = (function () {
 /**
  * Run a command in the configured shell and exit if a sigint is received
  *
- * @argument command the command to be run
+ * @argument commandKey the key of the command to be run
  */
-function runCommand(command) {
-    console.log('\n' + message('runCommand', command) + '\n');
+function runCommand(commandKey) {
+
+    command = config.scripts[currentScript.name]['commands'][commandKey]['command'];
+
+    printCommandMessageIfPresent(commandKey);
+
+    const commandDir = getDirToCDInto(commandKey);
+
+    console.log(message('runCommand', command, commandDir));
+
+    // prepend command to change directory to
+    command = 'cd ' + commandDir + ' && ' + command;
 
     let child_process = spawn(command, {shell: config.shell, stdio: 'inherit', detached: true}, (err, stdout, stderr) => {
         if (err) {
@@ -180,6 +176,32 @@ function runCommand(command) {
     process.on('SIGINT', () => {
         process.kill(-child_process.pid, 'SIGINT');
     });
+}
+
+function printCommandMessageIfPresent(commandKey) {
+    if (config.scripts[currentScript.name]['commands'][commandKey].hasOwnProperty('message')) {
+        console.log(message('commandMessage', config.scripts[currentScript.name]['commands'][commandKey]['message']));
+    }
+}
+
+/**
+ * Return the directory to change into to run the command
+ *
+ * @argument key - the key to command to be used to get the closest related ancestor that defines a directory to run the command in
+ */
+function getDirToCDInto(key) {
+    if (key === '') {
+        // no matching directory to cd into in parent path
+        return '';
+    }
+
+    if (config.scripts[currentScript.name]['directories'].hasOwnProperty(key)) {
+        // found directory in parent path cd into it and return
+        return config.scripts[currentScript.name]['directories'][key];
+    }
+
+    const parentKey = getParentKey(key);
+    return getDirToCDInto(parentKey);
 }
 
 /**
@@ -199,11 +221,7 @@ function whichShell() {
         type: 'list',
         name: 'whichShell',
         message: 'Which shell would you like to use?',
-        choices: [
-            'sh',
-            'bash',
-            'zsh'
-        ]
+        choices: ['sh', 'bash', 'zsh']
     });
 }
 
@@ -259,19 +277,6 @@ function getFirstKey(object) {
 }
 
 /**
- * Return a question prompting the user whether or not cotninue
- */
-function shouldContinue() {
-    shouldContinueCheckFlag = true;
-    return {
-        type: 'confirm',
-        name: 'shouldContinue',
-        message: 'Keep entering commands?',
-        default: false
-    };
-}
-
-/**
  * Print the config file to the console
  */
 function displayConfig() {
@@ -308,42 +313,6 @@ function listScripts() {
     } else {
         // print out script names and paths
         console.log(message('listScripts', config.scripts));
-    }
-}
-
-/**
- * Set the current script to the default script
- */
-function setScriptToDefault() {
-    if (config.default.defaultScriptName === '') {
-        console.log(error('noDefaultScript'));
-    } else {
-        currentScript.name = config.default.defaultScriptName;
-    }
-}
-
-/**
- * Prompt the user asking which script they would like to set as the default
- */
-function setDefaultScript() {
-    if (hasScripts()) {
-        inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
-            config.default.defaultScriptName = answer;
-            saveConfig();
-            console.log('\n' + message('defaultScriptSet', config.default.defaultScriptName));
-            prompts.complete();
-        }, (err) => {
-            console.warn(err);
-        }, () => {});
-
-        prompts.next({
-            type: 'list',
-            name: 'setDefaultScript',
-            message: 'Which script would you like to make the default?',
-            choices: Object.keys(config.scripts)
-        });
-    } else {
-        console.log(error('noSavedScripts'));
     }
 }
 
@@ -423,8 +392,8 @@ function printScript() {
     console.log('\nCommands:');
     printJson(config.scripts[currentScript.name]['commands'], 'green');
 
-    console.log('\nExit Commands:');
-    printJson(config.scripts[currentScript.name]['exitCommands'], 'yellow');
+    console.log('\nCommand Directories:');
+    printJson(config.scripts[currentScript.name]['directories'], 'blue');
 }
 
 /**
@@ -441,8 +410,6 @@ function deleteScript() {
  */
 function deleteAllScripts() {
     config.scripts = {};
-    config.default.defaultScriptName = '';
-    config.default.mostRecentScriptName = '';
     saveConfig();
 }
 
@@ -468,83 +435,86 @@ function processScript(script) {
 /**
  * Helper to recursively parse script for processing
  *
- * TODO -- parse relative directories for commands and options so you don't have to prepend cd ~/some/dir to a command
- *
  * @argument string script - the script loaded as JSON object converted from a .yaml file
- * @argument string relKey -
- * @argument string absKey -
+ * @argument string key - current script key to be processed
  */
-function processScriptRecurse(script, relKey, absKey) {
+function processScriptRecurse(script, key) {
+    if (script.hasOwnProperty('directory')) {
+        config.scripts[currentScript.name].directories[key] = script['directory'];
+    }
+
     if (script.hasOwnProperty('command')) {
-        config.scripts[currentScript.name].commands[absKey] = script['command'];
-        return [relKey, script['command']];
-    }
-    if (script.hasOwnProperty('exit-command')) {
-        config.scripts[currentScript.name].exitCommands[absKey] = script['exit-command'];
-        return [relKey, script['exit-command']];
-    }
-    if (script.hasOwnProperty('options')) {
+        config.scripts[currentScript.name].commands[key] = { command: script['command'] };
+        if (script.hasOwnProperty('message')) {
+            config.scripts[currentScript.name].commands[key]['message'] = script['message'];
+        }
+    } else if (script.hasOwnProperty('options')) {
         let choices = [];
-        for (var key in script['options']) {
-            choices.push(key);
-            processScriptRecurse(script['options'][key], key, absKey + '.' + key);
+        for (var option in script['options']) {
+            choices.push(option);
+            processScriptRecurse(script['options'][option], key + '.' + option);
+        }
+        if (currentScript.name !== key) {
+            // add default back option to every question to be able to second last option to go back
+            choices.push('back');
         }
         // add default quit option to every question so as to be able to display last option as quitting deathstar
         choices.push('quit');
-        config.scripts[currentScript.name].questions[absKey] = {
+        config.scripts[currentScript.name].questions[key] = {
             type: 'list',
-            name: relKey,
+            name: getNameFromKey(key),
             message: script['message'],
             choices: choices
         };
-        return config.scripts[currentScript.name].questions;
     }
+}
+
+/**
+ * Return the name of the key (which is just the last word after the last period)
+ *
+ * @argument key - key to use to return the name from
+ */
+function getNameFromKey(key) {
+    return key.split('.').pop();
+}
+
+/**
+ * Return the key of the parent (the key is everything before the last occurance of a period)
+ *
+ * @argument key - key to use to return the parent key from
+ */
+function getParentKey(key) {
+    return key.substr(0, key.lastIndexOf('.'));
 }
 
 /**
  * Run the current script
  */
 function runScript() {
-    if (currentScript.name !== '') {
-        config.default.mostRecentScriptName = currentScript.name;
-    }
-    saveConfig();
-
     let currentQuestion = currentScript.name;
 
     inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
         if (answer === 'quit') {
             prompts.complete();
             process.exit();
-        }
-        if (currentScript.name === '') {
+        } else if (answer === 'back') {
+            currentQuestion = getParentKey(currentQuestion);
+            prompts.next(config.scripts[currentScript.name]['questions'][currentQuestion]);
+        } else if (currentScript.name === '') {
             if (answer === 'help') {
                 prompts.complete();
                 program.help();
             } else {
-                currentScript.name = config.default.mostRecentScriptName;
-                currentQuestion = config.default.mostRecentScriptName;
-                prompts.next(config.scripts[currentQuestion]['questions'][currentQuestion]);
+                currentScript.name = answer;
+                currentQuestion = answer;
+                prompts.next(config.scripts[currentScript.name]['questions'][currentQuestion]);
             }
-        } else if (shouldContinueCheckFlag) {
-            if (answer === true) {
-                currentQuestion = currentScript.name;
-                prompts.next(questions[currentScript.name]);
-            } else {
-                prompts.complete;
-            }
-            shouldContinueCheckFlag = false;
         } else {
             currentQuestion += '.' + answer;
             if (config.scripts[currentScript.name]['questions'].hasOwnProperty(currentQuestion)) {
                 prompts.next(config.scripts[currentScript.name]['questions'][currentQuestion]);
             } else if (config.scripts[currentScript.name]['commands'].hasOwnProperty(currentQuestion)) {
-                runCommand(config.scripts[currentScript.name]['commands'][currentQuestion]);
-
-                // Check if the user would like to continue
-                prompts.next(shouldContinue());
-            } else if (config.scripts[currentScript.name]['exitCommands'].hasOwnProperty(currentQuestion)) {
-                runCommand(config.scripts[currentScript.name]['exitCommands'][currentQuestion]);
+                runCommand(currentQuestion);
             }
         }
     }, (err) => {
@@ -554,33 +524,39 @@ function runScript() {
     });
 
     if (currentScript.name === '') {
-        prompts.next(mostRecentScriptOrHelp());
+        prompts.next(getMenuQuestion());
     } else {
         prompts.next(config.scripts[currentScript.name]['questions'][currentScript.name]);
     }
 }
 
 /**
- * Return a question to prompt the user whether to run the most recent script or display help
+ * Return a question to prompt the user whether to a script, display help or quit
  */
-function mostRecentScriptOrHelp() {
+function getMenuQuestion() {
+    let choices = Object.keys(config.scripts);
+    // add help and quit elements
+    Array.prototype.push.apply(choices, ['help', 'quit']);
     return {
         type: 'list',
-        name: 'mostRecentScriptOrHelp',
-        message: message('mostRecentScriptOrHelp', config.default.mostRecentScriptName),
-        choices: ['run ' + config.default.mostRecentScriptName, 'help']
+        name: 'menu',
+        message: message('menu'),
+        choices: choices
     };
 }
 
 /**
- * Save a new script
+ * Save a new script to the config
+ *
+ * @argument script      script parsed from .yaml file
+ * @argument ymlFileName name of the .yaml file that stored the script
  */
 function newScript(script, ymlFileName) {
     if (!doesScriptExist()) {
         config.scripts[currentScript.name] = {
             questions: {},
             commands: {},
-            exitCommands: {}
+            directories: {}
         };
         processScript(script);
         saveScript();
@@ -593,7 +569,7 @@ function newScript(script, ymlFileName) {
  * Check if one of the options was passed
  */
 function noOptionPassed() {
-    if (!program.run && !program.save && !program.list && !program.delete && !program.deleteAll && !program.update && !program.print && !program.runDefault && !program.default && !program.shell && !program.config) {
+    if (!program.run && !program.save && !program.list && !program.delete && !program.deleteAll && !program.update && !program.print && !program.shell && !program.config) {
         return true;
     }
     return false;
@@ -619,11 +595,6 @@ function runCLI() {
                 // get script name
                 const script = loadYmlFile(ymlFileName);
                 currentScript.name = getFirstKey(script);
-
-                if (!hasScripts()) {
-                    // first script added, make default script
-                    config.default.defaultScriptName = currentScript.name;
-                }
                 // process script into questions and commands
                 newScript(script, ymlFileName);
             } else {
@@ -658,14 +629,6 @@ function runCLI() {
                 }
             }
         }
-        if (program.print) {
-            currentScript.name = program.print;
-            if (doesScriptExist()) {
-                printScript();
-            } else {
-                console.log(error('scriptDoesNotExist', currentScript.name));
-            }
-        }
         if (program.run) {
             currentScript.name = program.run;
             if (doesScriptExist()) {
@@ -673,6 +636,9 @@ function runCLI() {
             } else {
                 console.log(error('scriptDoesNotExist', currentScript.name));
             }
+        }
+        if (program.list) {
+            listScripts();
         }
         if (program.delete) {
             currentScript.name = program.delete;
@@ -682,24 +648,12 @@ function runCLI() {
         if (program.deleteAll) {
             shouldDeleteAllScripts();
         }
-        if (program.list) {
-            listScripts();
-        }
-        if (program.default) {
-            setDefaultScript();
-        }
-        if (program.runDefault) {
-            // set script to default
-            setScriptToDefault();
-
-            // check if default script still exists
+        if (program.print) {
+            currentScript.name = program.print;
             if (doesScriptExist()) {
-                // run the default script
-                runScript();
+                printScript();
             } else {
-                defaultScript = '';
-                saveConfig();
-                console.log(message('defaultScriptDoesNotExist', currentScript.name));
+                console.log(error('scriptDoesNotExist', currentScript.name));
             }
         }
         if (program.shell) {
@@ -718,8 +672,6 @@ program
     .option('-s --save [path to .yml file]', 'process and save a script')
     .option('-u --update [script name] [path to .yml file]', 'process and update a script')
     .option('-r --run [script name]', 'run a previously saved script')
-    .option('-R --recent', 'run most recent script as default when deathstar is run with no options')
-    .option('-D --default', 'set a default script to run as default when deathstar is run with no options')
     .option('-d --delete [script name]', 'delete a previously saved script')
     .option('-A --deleteAll [script name]', 'delete all previously saved scripts')
     .option('-p --print [script name]', 'print a saved script')
