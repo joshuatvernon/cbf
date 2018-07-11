@@ -99,6 +99,8 @@ let message = (function () {
             case 'defaultScriptSet':
                 // args[0] = default script
                 message = 'Default script set to ' + chalk.blue.bold(args[0]);
+            case 'quit':
+                message = 'Bye ✌️';
         }
         return message;
     }
@@ -453,9 +455,26 @@ function saveScript() {
 }
 
 /**
- * process a script and store it in the config
+ * Parse the yaml script loaded in as a json object into commands, options, messages
+ * and directories and store them as a script in the config
+ *
+ * @argument string script - the script loaded as JSON object converted from a .yaml file
  */
-function processScript(script, relKey, absKey) {
+function processScript(script) {
+    // recursively process the script into commands, messages, directories and options
+    processScriptRecurse(script[currentScript.name], currentScript.name, currentScript.name);
+}
+
+/**
+ * Helper to recursively parse script for processing
+ *
+ * TODO -- parse relative directories for commands and options so you don't have to prepend cd ~/some/dir to a command
+ *
+ * @argument string script - the script loaded as JSON object converted from a .yaml file
+ * @argument string relKey -
+ * @argument string absKey -
+ */
+function processScriptRecurse(script, relKey, absKey) {
     if (script.hasOwnProperty('command')) {
         config.scripts[currentScript.name].commands[absKey] = script['command'];
         return [relKey, script['command']];
@@ -468,8 +487,10 @@ function processScript(script, relKey, absKey) {
         let choices = [];
         for (var key in script['options']) {
             choices.push(key);
-            processScript(script['options'][key], key, absKey + '.' + key);
+            processScriptRecurse(script['options'][key], key, absKey + '.' + key);
         }
+        // add default quit option to every question so as to be able to display last option as quitting deathstar
+        choices.push('quit');
         config.scripts[currentScript.name].questions[absKey] = {
             type: 'list',
             name: relKey,
@@ -492,6 +513,10 @@ function runScript() {
     let currentQuestion = currentScript.name;
 
     inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
+        if (answer === 'quit') {
+            prompts.complete();
+            process.exit();
+        }
         if (currentScript.name === '') {
             if (answer === 'help') {
                 prompts.complete();
@@ -557,7 +582,7 @@ function newScript(script, ymlFileName) {
             commands: {},
             exitCommands: {}
         };
-        processScript(script[currentScript.name], currentScript.name, currentScript.name);
+        processScript(script);
         saveScript();
     } else {
         console.log(message('duplicateScript', currentScript.name, ymlFileName));
@@ -623,7 +648,7 @@ function runCLI() {
                     process.exit();
                 }
                 // process script into questions and commands
-                processScript(script[currentScript.name], currentScript.name, currentScript.name);
+                processScript(script);
                 saveScript();
             } else {
                 if (ymlFileName === true) {
