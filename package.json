@@ -10,7 +10,7 @@
     "engines": {
         "node": ">=0.10"
     },
-    "license": "ISC",
+    "license": "MIT",
     "dependencies": {
         "chalk": "^2.4.1",
         "child_process": "^1.0.2",
@@ -20,6 +20,16 @@
         "rxjs": "^5.5.2",
         "yamljs": "^0.3.0"
     },
+    "keywords": [
+        "script",
+        "scripts",
+        "runner",
+        "runner",
+        "scriptrunner",
+        "command",
+        "commands",
+        "cli"
+    ],
     "repository": {
         "type": "git",
         "url": "https://github.com/joshuatvernon/pyr"

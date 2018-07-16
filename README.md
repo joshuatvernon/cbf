@@ -1,99 +1,67 @@
 # Pyr
 
-A tool for creating scripts that store all your most commonly used CLI commands in your _pyr_ and then ride them around _Gotham_ later.
-
-### Commands
-
-To save a script:
-```sh
-pyr -s examples/tie-fighter.yml
-```
-
-To list saved scripts:
-```sh
-pyr -l
-```
-
-To run a script:
-```sh
-pyr -r tie-fighter
-```
-
-To delete a script:
-```sh
-pyr -d tie-fighter
-```
-
-To update a script:
-```sh
-pyr -u tie-fighter examples/tie-fighter.yml
-```
-
-To print a script:
-```sh
-pyr -p tie-fighter
-```
-
-To print all scripts:
-```sh
-pyr -P
-```
-
-To set a default script:
-```sh
-pyr -D
-```
-
-To run the default script
-```sh
-pyr -R
-```
-
-To view the config
-```sh
-pyr -c
-```
-
-To change the shell pyr uses (defaults to `/bin/bash`)
-```sh
-pyr -S
-```
+__pyr__ is a tool for storing and running project specific commands in the CLI and documenting those commands in an easy format that can be committed directly to a projects repo for developers to share common commands.
 
 ### Scripts
 
-Scripts are loaded in `.yml` files with a specific format e.g.
+__pyr__ uses the concept of _scripts_ stored as `.yml` files. Scripts are made up of `options`, `command`, `message` and `directory` tags that are used to construct the layout of the script e.g.
+
 ```yaml
----
-tie-fighter:
-  message: "Who should the spaceship follow?"
-  options:
-    millennium-falcon:
-      message: "Shoot missiles or lasers?"
-      options:
-        missiles:
-          command: "mkdir ~/Millennium\\ Falcon && cd ~/Millennium\\ Falcon && echo BOOM!!!"
-        lasers:
-          command: "mkdir ~/Millennium\\ Falcon && cd ~/Millennium\\ Falcon && echo Pew Pew!!!"
-    x-wing:
-      message: "Shoot missiles or lasers?"
-      options:
-        missiles:
-          command: "mkdir ~/X-Wing && cd ~/X-Wing && echo BOOM!!!"
-        lasers:
-          command: "mkdir ~/X-Wing && cd ~/X-Wing && echo Pew Pew!!!"
+hello:
+    message: "What language would you like to use?"
+    directory: "~/Desktop"
+    options:
+        spanish:
+            directory: "~/Desktop/Spain"
+            message: "Hola mundo!"
+            command: "echo Hola mundo >> spanish.txt"
+        french:
+            directory: "~/Desktop/French"
+            message: "Bonjour le monde!"
+            command: "echo Bonjour le monde! >> french.txt"
+        english:
+            message: "Australian or British?"
+            options:
+                australian:
+                    directory: "~/Desktop/Australia"
+                    message: "G'day world!"
+                    command: "echo g'day world >> australian.txt"
+                british:
+                    directory: "~/Desktop/British"
+                    message: "Hello world!"
+                    command: "echo hello world >> british.txt"
 ```
 
-By default the script will be named what ever the top level tag is. In the above example the script will be named `tie-fighter`.
+Scripts are easy to build and follow simple rules:
+1. The first tag in a script serves as the scripts name
+2. `options` tags are used to store lists of more `options` or `command`
+3. `command` tags are used to store a string containing any commands that can be ran in the shell
+4. `message` tags are used to store messages that are printed to stdout when an option or command is selected
+5. When a command is ran, __pyr__ recursively searches for the first `directory` tag to `cd` into to ran the command
 
-Under the script name you can optionally have a `command` or `options` tag to determine whether you would like to run a command or ask a question. `options` can also have a preceding `message` displayed before asking the question.
+### Commands
 
-### Tags
+__Pyr__
 
-| Tags           | Description                                                                                                                      | Below                                  | Above                                              |
-|----------------|----------------------------------------------------------------------------------------------------------------------------------|----------------------------------------|----------------------------------------------------|
-| `<script>`     | This tag determines what pyr will call the script                                                                            | nothing - this tag is the top most tag | everything - this tag is the top most tag          |
-| `message`      | This tag can only be nested below a `<script>` or `<option>` tag and will provide the message to print before asking a question  | a `<script>` or <option>` tag          | nothing - this tag may only store a message string |
-| `options`      | This tag signals that a question should be asked. The `<option>` tags below it will be the options displayed                     | a `<script>` or `<option>` tag         | One to many `<option>` tags                        |
-| `<option>`     | This tag will display an option                                                                                                  | an `options` tag                       | a `message`, `options` or `command` tag            |
-| `command`      | This tag will signal the command to be run if the option is selected                                                             | an `<option>` tag                      | nothing - this tag may only store a message string |
-| `exit-command` | This tag will signal the command to be run if the option is selected and then exit                                               | an `<option>` tag                      | nothing - this tag may only store a message string |
+```sh
+λ pyr
+
+  Usage: pyr [options]
+
+  Options:
+
+    -V, --version                                  output the version number
+    -l --list                                      list previously saved scripts
+    -s --save [path to .yml file]                  process and save a script
+    -u --update [script name] [path to .yml file]  process and update a script
+    -r --run [script name]                         run a previously saved script
+    -d --delete [script name]                      delete a previously saved script
+    -A --deleteAll [script name]                   delete all previously saved scripts
+    -p --print [script name]                       print a saved script
+    -S --shell                                     set the which shell should run commands
+    -c --config                                    display configuration
+    -h, --help                                     output usage information
+```
+
+### Copyright
+MIT

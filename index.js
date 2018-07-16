@@ -670,7 +670,7 @@ const run = () => {
 }
 
 program
-    .version('1.0.0')
+    .version('1.0.1')
     .usage('[options]')
     .option('-l --list', 'list previously saved scripts')
     .option('-s --save [path to .yml file]', 'process and save a script')
@@ -684,5 +684,3 @@ program
     .parse(process.argv);
 
 run();
-
-pyr
