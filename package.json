@@ -1,6 +1,6 @@
 {
     "name": "pyr",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "A package for creating a script to store and run your most commonly used CLI commands",
     "main": "index.js",
     "scripts": {
