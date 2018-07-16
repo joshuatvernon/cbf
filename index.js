@@ -7,7 +7,6 @@ const chalk = require('chalk');
 const rx = require('rxjs');
 const fse = require('fs-extra');
 const { spawn } = require('child_process');
-
 const prompts = new rx.Subject();
 const configFilePath = __dirname + '/config.json';
 
@@ -28,7 +27,7 @@ let currentScript = {
 /**
  * Message factory
  */
-let message = (function () {
+const message = (function () {
     return function (messageType, ...args) {
         let message = '';
         switch (messageType) {
@@ -37,7 +36,7 @@ let message = (function () {
                 break;
             case 'shellSet':
                 // args[0] = shell to be set
-                message = 'Shell was set to ' + chalk.blue.bold(args[0]);
+                message = `Shell was set to ${chalk.blue.bold(args[0])}`;
                 break;
             case 'commandMessage':
                 // args[0] = command message to be printed
@@ -45,38 +44,38 @@ let message = (function () {
                 break;
             case 'runCommand':
                 // args[0] = command to be run, args[1] = directory to run command in
-                message = '\nRunning: ' + chalk.blue.bold(args[0]) + ' in ' + chalk.blue.bold(args[1]) + '\n';
+                message = `\nRunning: ${chalk.blue.bold(args[0])} in ${chalk.blue.bold(args[1])}\n`;
                 break;
             case 'printConfig':
                 // args[0] = config
-                message = 'deathstar Config:\n' + chalk.blue.bold(JSON.stringify(args[0], null, 4));
+                message = `deathstar Config:\n${chalk.blue.bold(JSON.stringify(args[0], null, 4))}`;
                 break;
             case 'savedScript':
                 // args[0] = saved script
-                message = 'Saved script as ' + chalk.blue.bold(args[0]) + '\n\nUse ' + chalk.blue.bold('deathstar -r ' + args[0]) + ' to run it';
+                message = `Saved script as ${chalk.blue.bold(args[0])}\n\nUse ${chalk.blue.bold(`deathstar -r ${args[0]}`)} to run it`;
                 break;
             case 'scriptNotReplaced':
                 // args[0] = script to be replaced
-                message = chalk.blue.bold(args[0]) + ' script not replaced; exiting deathstar';
+                message = `${chalk.blue.bold(args[0])} script not replaced; exiting deathstar`;
                 break;
             case 'listScripts':
                 // args[0] = scripts
                 for (let scriptName in config.scripts) {
-                    message += chalk.blue.bold(scriptName) + '\n';
+                    message += `${chalk.blue.bold(scriptName)}\n`;
                 }
                 // remove trailing newline
                 message = message.replace(/\n$/, "");
                 break;
             case 'shouldDelete':
                 // args[0] = script to be deleted
-                message = 'Delete ' + chalk.blue.bold(args[0]) + ' script (this action cannot be undone)?';
+                message = `Delete ${chalk.blue.bold(args[0])} script (this action cannot be undone)?`;
                 break;
             case 'shouldDeleteScript':
                 message = 'Delete all scripts (this action cannot be undone)?';
                 break;
             case 'scriptNotDeleted':
                 // args[0] = script to be deleted
-                message = chalk.blue.bold(args[0]) + ' script not deleted; exiting deathstar';
+                message = `${chalk.blue.bold(args[0])} script not deleted; exiting deathstar`;
                 break;
             case 'noScriptsToDelete':
                 message = 'There are currently no scripts to delete; exiting deathstar';
@@ -86,11 +85,11 @@ let message = (function () {
                 break;
             case 'deletedScript':
                 // args[0] = deleted script
-                message = 'Deleted ' + chalk.blue.bold(args[0]) + ' script; exiting deathstar';
+                message = `Deleted ${chalk.blue.bold(args[0])} script; exiting deathstar`;
                 break;
             case 'duplicateScript':
                 // args[0] = pre-existing script
-                message = 'A script with the name ' + chalk.blue.bold(args[1]) + ' already exists.\n\nTry running ' + chalk.blue.bold('deathstar -u ' + args[0] + ' ' + args[1]);
+                message = `A script with the name ${chalk.blue.bold(args[1])} already exists.\n\nTry running ${chalk.blue.bold(`deathstar -u ${args[0]} ${args[1]}`)}`;
                 break;
             case 'quit':
                 message = 'Bye ✌️';
@@ -102,42 +101,42 @@ let message = (function () {
 /**
  * Error message factory
  */
-let error = (function () {
+const error = (function () {
     return function (errorType, ...args) {
         let errorMessage = '';
         switch (errorType) {
             case 'noSavedScripts':
-                errorMessage = 'You have no saved scripts.\n\nYou can save a script by using ' + chalk.blue.bold('deathstar -s [path to .yml file]');
+                errorMessage = `You have no saved scripts.\n\nYou can save a script by using ${chalk.blue.bold('deathstar -s [path to .yml file]')}`;
                 break;
             case 'errorDeletingScript':
                 // args[0] = script to be deleted
-                errorMessage = 'Error deleting ' + chalk.blue.bold(args[0]) + ' script; exiting deathstar';
+                errorMessage = `Error deleting ${chalk.blue.bold(args[0])} script; exiting deathstar`;
                 break;
             case 'scriptTagNameDoesNotMatch':
                 // args[0] = new script name, args[1] = .yml file name, args[2] = script to be updated
-                errorMessage = 'script tag in ' + chalk.blue.bold(args[0]) + ' script in ' + chalk.blue.bold(args[1]) + ' does not match the ' + chalk.blue.bold(args[2]) + ' script you are trying to update';
+                errorMessage = `script tag in ${chalk.blue.bold(args[0])} script in ${chalk.blue.bold(args[1])} does not match the ${chalk.blue.bold(args[2])} script you are trying to update`;
                 break;
             case 'scriptToBeUpdatedDoesNotExist':
                 // args[0] = current script, args[1] = .yml file name
-                errorMessage = chalk.blue.bold(args[0]) + ' script doesn\'t exist to be updated\n\nTry saving it as a new script by running ' + chalk.blue.bold('deathstar -s ' + args[1]);
+                errorMessage = `${chalk.blue.bold(args[0])} script doesn\'t exist to be updated\n\nTry saving it as a new script by running ${chalk.blue.bold(`deathstar -s ${args[1]}`)}`;
                 break;
             case 'noYmlFile':
-                errorMessage = 'No path to .yml file passed in\n\nTry rerunning with ' + chalk.blue.bold('deathstar -s [path to .yml file]');
+                errorMessage = `No path to .yml file passed in\n\nTry rerunning with ${chalk.blue.bold('deathstar -s [path to .yml file]')}`;
                 break;
             case 'incorrectYmlFile':
                 // args[0] = .yml file name
-                errorMessage = chalk.blue.bold(args[0]) + ' is an incorrect .yml filename';
+                errorMessage = `${chalk.blue.bold(args[0])} is an incorrect .yml filename`;
                 break;
             case 'scriptDoesNotExist':
                 // args[0] = script to be run
-                errorMessage = 'There is currently no saved script with the name ' + chalk.blue.bold(args[0]) + '\n\nTry resaving it by using ' + chalk.blue.bold('deathstar -s [path to .yml file]');
+                errorMessage = `There is currently no saved script with the name ${chalk.blue.bold(args[0])}\n\nTry resaving it by using ${chalk.blue.bold('deathstar -s [path to .yml file]')}`;
                 break;
             case 'errorRunningCommand':
                 // args[0] = command to be run, args[1] = error message
-                errorMessage = 'Error executing ' + chalk.blue.bold(args[0]) + ' command\n\n' + chalk.red.bold(args[1]);
+                errorMessage = `\n\nError executing ${chalk.blue.bold(args[0])} command\n\n${chalk.red.bold(args[1])}`;
                 break;
             default:
-                errorMessage = 'There was an unknown error; feel free to report this on ' + chalk.blue.bold('https://www.npmjs.com/') + ' or ' + chalk.blue.bold('https://wwww.github.com/');
+                errorMessage = `There was an unknown error; feel free to report this on ${chalk.blue.bold('https://www.npmjs.com/')} or ${chalk.blue.bold('https://wwww.github.com/')}`;
         }
         return errorMessage;
     }
@@ -148,7 +147,7 @@ let error = (function () {
  *
  * @argument commandKey the key of the command to be run
  */
-function runCommand(commandKey) {
+const runCommand = (commandKey) => {
 
     command = config.scripts[currentScript.name]['commands'][commandKey]['command'];
 
@@ -163,7 +162,7 @@ function runCommand(commandKey) {
 
     let child_process = spawn(command, {shell: config.shell, stdio: 'inherit', detached: true}, (err, stdout, stderr) => {
         if (err) {
-            console.log('\n\n' + error('errorRunningCommand', command, err));
+            console.log(error('errorRunningCommand', command, err));
             prompts.complete;
             process.exit();
         }
@@ -178,7 +177,12 @@ function runCommand(commandKey) {
     });
 }
 
-function printCommandMessageIfPresent(commandKey) {
+/**
+ * If a message was passed in with a command print it to stdout
+ *
+ * @argument commandKey key of command to find command message
+ */
+const printCommandMessageIfPresent = (commandKey) => {
     if (config.scripts[currentScript.name]['commands'][commandKey].hasOwnProperty('message')) {
         console.log(message('commandMessage', config.scripts[currentScript.name]['commands'][commandKey]['message']));
     }
@@ -189,7 +193,7 @@ function printCommandMessageIfPresent(commandKey) {
  *
  * @argument key - the key to command to be used to get the closest related ancestor that defines a directory to run the command in
  */
-function getDirToCDInto(key) {
+const getDirToCDInto = (key) => {
     if (key === '') {
         // no matching directory to cd into in parent path
         return '';
@@ -207,9 +211,9 @@ function getDirToCDInto(key) {
 /**
  * Prompt the user to choose a shell
  */
-function whichShell() {
+const whichShell = () => {
     inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
-        config.shell = '/bin/' + answer;
+        config.shell = `/bin/${answer}`;
         saveConfig();
         console.log('\n' + message('shellSet', config.shell));
         prompts.complete();
@@ -231,7 +235,7 @@ function whichShell() {
  * @argument obj object to be printed as coloured JSON
  * @argument colour colour to print the JSON
  */
-function printJson(obj, colour) {
+const printJson = (obj, colour) => {
     return console.log(chalk[colour].bold(JSON.stringify(script, null, 4)));
 }
 
@@ -240,7 +244,7 @@ function printJson(obj, colour) {
  *
  * @argument fileName a .yaml file name to validate
  */
-function isValidYamlFileName(fileName) {
+const isValidYamlFileName = (fileName) => {
     return /.*\.yml/.test(fileName);
 }
 
@@ -249,14 +253,14 @@ function isValidYamlFileName(fileName) {
  *
  * @argument ymlFileName .yaml file to load
  */
-function loadYmlFile(ymlFileName) {
+const loadYmlFile = (ymlFileName) => {
     return yaml.load(ymlFileName);
 }
 
 /**
  * Return true if the current script is saved to config
  */
-function doesScriptExist() {
+const doesScriptExist = () => {
     if (currentScript.name in config.scripts) {
         return true;
     }
@@ -268,7 +272,7 @@ function doesScriptExist() {
  *
  * @argument object the object to get the first key from
  */
-function getFirstKey(object) {
+const getFirstKey = (object) => {
     for (var key in object) {
         if (object.hasOwnProperty(key)) {
             return key;
@@ -279,21 +283,21 @@ function getFirstKey(object) {
 /**
  * Print the config file to the console
  */
-function displayConfig() {
+const displayConfig = () => {
     console.log(message('printConfig', config));
 }
 
 /**
  * Save the config
  */
-function saveConfig() {
+const saveConfig = () => {
     fse.outputJsonSync(configFilePath, config, {spaces: 4});
 }
 
 /**
  * Load the config
  */
-function loadConfig() {
+const loadConfig = () => {
     // load config
     if (fse.existsSync(configFilePath)) {
         // get config
@@ -307,7 +311,7 @@ function loadConfig() {
 /**
  * List the scripts saved in the config
  */
-function listScripts() {
+const listScripts = () => {
     if (Object.keys(config.scripts).length === 0) {
         console.log(error('noSavedScripts'));
     } else {
@@ -319,7 +323,7 @@ function listScripts() {
 /**
  * Prompt the user whether or not the delete the current script
  */
-function shouldDeleteScript() {
+const shouldDeleteScript = () => {
     inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
         if (answer === false) {
             console.log(message('scriptNotDeleted', currentScript.name));
@@ -343,7 +347,7 @@ function shouldDeleteScript() {
 /**
  * Prompt the user wther or not to delete all the scripts in the config
  */
-function shouldDeleteAllScripts() {
+const shouldDeleteAllScripts = () => {
     if (!hasScripts()) {
         // no scripts to delete
         console.log(message('noScriptsToDelete'));
@@ -371,7 +375,7 @@ function shouldDeleteAllScripts() {
 /**
  * Return true if the config has scripts currently saved
  */
-function hasScripts() {
+const hasScripts = () => {
     if (Object.keys(config.scripts).length === 0 && config.scripts.constructor === Object) {
         return false;
     }
@@ -383,7 +387,7 @@ function hasScripts() {
  *
  * TODO change this whole function to print out the .yml file (reverse engineered from the .json file)
  */
-function printScript() {
+const printScript = () => {
     console.log(chalk.blue.bold(currentScript.name) + ' script:\n');
 
     console.log('Questions:');
@@ -399,7 +403,7 @@ function printScript() {
 /**
  * Delete a script in the config
  */
-function deleteScript() {
+const deleteScript = () => {
     delete config.scripts[currentScript.name];
     saveConfig();
     console.log(message('deletedScript', currentScript.name));
@@ -408,7 +412,7 @@ function deleteScript() {
 /**
  * Delete all the scripts in the config
  */
-function deleteAllScripts() {
+const deleteAllScripts = () => {
     config.scripts = {};
     saveConfig();
 }
@@ -416,7 +420,7 @@ function deleteAllScripts() {
 /**
  * Save the current script
  */
-function saveScript() {
+const saveScript = () => {
     saveConfig();
     console.log(message('savedScript', currentScript.name));
 }
@@ -427,7 +431,7 @@ function saveScript() {
  *
  * @argument string script - the script loaded as JSON object converted from a .yaml file
  */
-function processScript(script) {
+const processScript = (script) => {
     // recursively process the script into commands, messages, directories and options
     processScriptRecurse(script[currentScript.name], currentScript.name, currentScript.name);
 }
@@ -438,7 +442,7 @@ function processScript(script) {
  * @argument string script - the script loaded as JSON object converted from a .yaml file
  * @argument string key - current script key to be processed
  */
-function processScriptRecurse(script, key) {
+const processScriptRecurse = (script, key) => {
     if (script.hasOwnProperty('directory')) {
         config.scripts[currentScript.name].directories[key] = script['directory'];
     }
@@ -474,7 +478,7 @@ function processScriptRecurse(script, key) {
  *
  * @argument key - key to use to return the name from
  */
-function getNameFromKey(key) {
+const getNameFromKey = (key) => {
     return key.split('.').pop();
 }
 
@@ -483,14 +487,14 @@ function getNameFromKey(key) {
  *
  * @argument key - key to use to return the parent key from
  */
-function getParentKey(key) {
+const getParentKey = (key) => {
     return key.substr(0, key.lastIndexOf('.'));
 }
 
 /**
  * Run the current script
  */
-function runScript() {
+const runScript = () => {
     let currentQuestion = currentScript.name;
 
     inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
@@ -533,7 +537,7 @@ function runScript() {
 /**
  * Return a question to prompt the user whether to a script, display help or quit
  */
-function getMenuQuestion() {
+const getMenuQuestion = () => {
     let choices = Object.keys(config.scripts);
     // add help and quit elements
     Array.prototype.push.apply(choices, ['help', 'quit']);
@@ -551,7 +555,7 @@ function getMenuQuestion() {
  * @argument script      script parsed from .yaml file
  * @argument ymlFileName name of the .yaml file that stored the script
  */
-function newScript(script, ymlFileName) {
+const newScript = (script, ymlFileName) => {
     if (!doesScriptExist()) {
         config.scripts[currentScript.name] = {
             questions: {},
@@ -568,7 +572,7 @@ function newScript(script, ymlFileName) {
 /**
  * Check if one of the options was passed
  */
-function noOptionPassed() {
+const noOptionPassed = () => {
     if (!program.run && !program.save && !program.list && !program.delete && !program.deleteAll && !program.update && !program.print && !program.shell && !program.config) {
         return true;
     }
@@ -578,7 +582,7 @@ function noOptionPassed() {
 /**
  * Run the script from the cli with the options passed
  */
-function runCLI() {
+const run = () => {
     loadConfig();
 
     if (noOptionPassed()) {
@@ -679,4 +683,4 @@ program
     .option('-c --config', 'display configuration')
     .parse(process.argv);
 
-runCLI();
+run();
