@@ -668,9 +668,8 @@ const run = () => {
         }
     }
 }
-
 program
-    .version('1.0.1')
+    .version('1.0.2')
     .usage('[options]')
     .option('-l --list', 'list previously saved scripts')
     .option('-s --save [path to .yml file]', 'process and save a script')
