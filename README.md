@@ -41,8 +41,6 @@ Scripts are easy to build and follow simple rules:
 
 ### Commands
 
-__Pyr__
-
 ```sh
 λ pyr
 
