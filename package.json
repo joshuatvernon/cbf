@@ -1,5 +1,5 @@
 {
-    "name": "deathstar",
+    "name": "pyr",
     "version": "1.0.0",
     "description": "A package for creating a script to store and run your most commonly used CLI commands",
     "main": "index.js",
@@ -22,9 +22,9 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/joshuatvernon/deathstar"
+        "url": "https://github.com/joshuatvernon/pyr"
     },
     "bin": {
-        "deathstar": "index.js"
+        "pyr": "index.js"
     }
 }

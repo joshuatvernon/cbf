@@ -48,15 +48,15 @@ const message = (function () {
                 break;
             case 'printConfig':
                 // args[0] = config
-                message = `deathstar Config:\n${chalk.blue.bold(JSON.stringify(args[0], null, 4))}`;
+                message = `pyr Config:\n${chalk.blue.bold(JSON.stringify(args[0], null, 4))}`;
                 break;
             case 'savedScript':
                 // args[0] = saved script
-                message = `Saved script as ${chalk.blue.bold(args[0])}\n\nUse ${chalk.blue.bold(`deathstar -r ${args[0]}`)} to run it`;
+                message = `Saved script as ${chalk.blue.bold(args[0])}\n\nUse ${chalk.blue.bold(`pyr -r ${args[0]}`)} to run it`;
                 break;
             case 'scriptNotReplaced':
                 // args[0] = script to be replaced
-                message = `${chalk.blue.bold(args[0])} script not replaced; exiting deathstar`;
+                message = `${chalk.blue.bold(args[0])} script not replaced; exiting pyr`;
                 break;
             case 'listScripts':
                 // args[0] = scripts
@@ -75,21 +75,21 @@ const message = (function () {
                 break;
             case 'scriptNotDeleted':
                 // args[0] = script to be deleted
-                message = `${chalk.blue.bold(args[0])} script not deleted; exiting deathstar`;
+                message = `${chalk.blue.bold(args[0])} script not deleted; exiting pyr`;
                 break;
             case 'noScriptsToDelete':
-                message = 'There are currently no scripts to delete; exiting deathstar';
+                message = 'There are currently no scripts to delete; exiting pyr';
                 break;
             case 'scriptsNotDeleted':
-                message = 'Scripts not deleted; exiting deathstar';
+                message = 'Scripts not deleted; exiting pyr';
                 break;
             case 'deletedScript':
                 // args[0] = deleted script
-                message = `Deleted ${chalk.blue.bold(args[0])} script; exiting deathstar`;
+                message = `Deleted ${chalk.blue.bold(args[0])} script; exiting pyr`;
                 break;
             case 'duplicateScript':
                 // args[0] = pre-existing script
-                message = `A script with the name ${chalk.blue.bold(args[1])} already exists.\n\nTry running ${chalk.blue.bold(`deathstar -u ${args[0]} ${args[1]}`)}`;
+                message = `A script with the name ${chalk.blue.bold(args[1])} already exists.\n\nTry running ${chalk.blue.bold(`pyr -u ${args[0]} ${args[1]}`)}`;
                 break;
             case 'quit':
                 message = 'Bye ✌️';
@@ -106,11 +106,11 @@ const error = (function () {
         let errorMessage = '';
         switch (errorType) {
             case 'noSavedScripts':
-                errorMessage = `You have no saved scripts.\n\nYou can save a script by using ${chalk.blue.bold('deathstar -s [path to .yml file]')}`;
+                errorMessage = `You have no saved scripts.\n\nYou can save a script by using ${chalk.blue.bold('pyr -s [path to .yml file]')}`;
                 break;
             case 'errorDeletingScript':
                 // args[0] = script to be deleted
-                errorMessage = `Error deleting ${chalk.blue.bold(args[0])} script; exiting deathstar`;
+                errorMessage = `Error deleting ${chalk.blue.bold(args[0])} script; exiting pyr`;
                 break;
             case 'scriptTagNameDoesNotMatch':
                 // args[0] = new script name, args[1] = .yml file name, args[2] = script to be updated
@@ -118,10 +118,10 @@ const error = (function () {
                 break;
             case 'scriptToBeUpdatedDoesNotExist':
                 // args[0] = current script, args[1] = .yml file name
-                errorMessage = `${chalk.blue.bold(args[0])} script doesn\'t exist to be updated\n\nTry saving it as a new script by running ${chalk.blue.bold(`deathstar -s ${args[1]}`)}`;
+                errorMessage = `${chalk.blue.bold(args[0])} script doesn\'t exist to be updated\n\nTry saving it as a new script by running ${chalk.blue.bold(`pyr -s ${args[1]}`)}`;
                 break;
             case 'noYmlFile':
-                errorMessage = `No path to .yml file passed in\n\nTry rerunning with ${chalk.blue.bold('deathstar -s [path to .yml file]')}`;
+                errorMessage = `No path to .yml file passed in\n\nTry rerunning with ${chalk.blue.bold('pyr -s [path to .yml file]')}`;
                 break;
             case 'incorrectYmlFile':
                 // args[0] = .yml file name
@@ -129,7 +129,7 @@ const error = (function () {
                 break;
             case 'scriptDoesNotExist':
                 // args[0] = script to be run
-                errorMessage = `There is currently no saved script with the name ${chalk.blue.bold(args[0])}\n\nTry resaving it by using ${chalk.blue.bold('deathstar -s [path to .yml file]')}`;
+                errorMessage = `There is currently no saved script with the name ${chalk.blue.bold(args[0])}\n\nTry resaving it by using ${chalk.blue.bold('pyr -s [path to .yml file]')}`;
                 break;
             case 'errorRunningCommand':
                 // args[0] = command to be run, args[1] = error message
@@ -169,7 +169,7 @@ const runCommand = (commandKey) => {
     });
 
     child_process.on('exit', () => {
-        console.log(chalk.blue.bold('\ndeathstar exited'));
+        console.log(chalk.blue.bold('\npyr exited'));
     });
 
     process.on('SIGINT', () => {
@@ -462,7 +462,7 @@ const processScriptRecurse = (script, key) => {
             // add default back option to every question to be able to second last option to go back
             choices.push('back');
         }
-        // add default quit option to every question so as to be able to display last option as quitting deathstar
+        // add default quit option to every question so as to be able to display last option as quitting pyr
         choices.push('quit');
         config.scripts[currentScript.name].questions[key] = {
             type: 'list',
@@ -684,3 +684,5 @@ program
     .parse(process.argv);
 
 run();
+
+pyr
