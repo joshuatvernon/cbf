@@ -20,8 +20,13 @@ let config = {
 let currentScript = {
     name: '',
     questions: {},
+    documentedQuestions: {},
     commands: {},
     directories: {}
+}
+
+let featureFlags = {
+    documented: false
 }
 
 /**
@@ -454,21 +459,30 @@ const processScriptRecurse = (script, key) => {
         }
     } else if (script.hasOwnProperty('options')) {
         let choices = [];
+        let choicesWithCommands = [];
         for (var option in script['options']) {
-            choices.push(option);
             processScriptRecurse(script['options'][option], key + '.' + option);
+            choices.push(option);
+            if (script['options'][option].hasOwnProperty('command')) {
+                // document choice with command
+                option += ' -> ' + chalk.red.bold(script['options'][option]['command']);
+            }
+            choicesWithCommands.push(option);
         }
         if (currentScript.name !== key) {
             // add default back option to every question to be able to second last option to go back
             choices.push('back');
+            choicesWithCommands.push('back');
         }
         // add default quit option to every question so as to be able to display last option as quitting pyr
         choices.push('quit');
+        choicesWithCommands.push('quit');
         config.scripts[currentScript.name].questions[key] = {
             type: 'list',
             name: getNameFromKey(key),
             message: script['message'],
-            choices: choices
+            choices: choices,
+            choicesWithCommands: choicesWithCommands
         };
     }
 }
@@ -503,7 +517,7 @@ const runScript = () => {
             process.exit();
         } else if (answer === 'back') {
             currentQuestion = getParentKey(currentQuestion);
-            prompts.next(config.scripts[currentScript.name]['questions'][currentQuestion]);
+            prompts.next(getNextQuestion(currentQuestion));
         } else if (currentScript.name === '') {
             if (answer === 'help') {
                 prompts.complete();
@@ -511,12 +525,12 @@ const runScript = () => {
             } else {
                 currentScript.name = answer;
                 currentQuestion = answer;
-                prompts.next(config.scripts[currentScript.name]['questions'][currentQuestion]);
+                prompts.next(getNextQuestion(currentQuestion));
             }
         } else {
             currentQuestion += '.' + answer;
             if (config.scripts[currentScript.name]['questions'].hasOwnProperty(currentQuestion)) {
-                prompts.next(config.scripts[currentScript.name]['questions'][currentQuestion]);
+                prompts.next(getNextQuestion(currentQuestion));
             } else if (config.scripts[currentScript.name]['commands'].hasOwnProperty(currentQuestion)) {
                 runCommand(currentQuestion);
             }
@@ -530,8 +544,20 @@ const runScript = () => {
     if (currentScript.name === '') {
         prompts.next(getMenuQuestion());
     } else {
-        prompts.next(config.scripts[currentScript.name]['questions'][currentScript.name]);
+        prompts.next(getNextQuestion(currentScript.name));
     }
+}
+
+/**
+ * Return the
+ *
+ * @argument questionKey
+ */
+function getNextQuestion(questionKey) {
+    if (featureFlags.documented) {
+        config.scripts[currentScript.name]['questions'][questionKey].choices = config.scripts[currentScript.name]['questions'][questionKey].choicesWithCommands;
+    }
+    return config.scripts[currentScript.name]['questions'][questionKey];
 }
 
 /**
@@ -559,6 +585,7 @@ const newScript = (script, ymlFileName) => {
     if (!doesScriptExist()) {
         config.scripts[currentScript.name] = {
             questions: {},
+            documentedQuestions: {},
             commands: {},
             directories: {}
         };
@@ -572,8 +599,8 @@ const newScript = (script, ymlFileName) => {
 /**
  * Check if one of the options was passed
  */
-const noOptionPassed = () => {
-    if (!program.run && !program.save && !program.list && !program.delete && !program.deleteAll && !program.update && !program.print && !program.shell && !program.config) {
+function noOptionPassed() {
+    if (!program.run && !program.save && !program.list && !program.delete && !program.documented && !program.deleteAll && !program.update && !program.print && !program.shell && !program.config) {
         return true;
     }
     return false;
@@ -633,6 +660,9 @@ const run = () => {
                 }
             }
         }
+        if (program.documented) {
+            featureFlags.documented = true;
+        }
         if (program.run) {
             currentScript.name = program.run;
             if (doesScriptExist()) {
@@ -668,6 +698,7 @@ const run = () => {
         }
     }
 }
+
 program
     .version('1.0.4')
     .usage('[options]')
@@ -676,6 +707,7 @@ program
     .option('-u --update [script name] [path to .yml file]', 'process and update a script')
     .option('-r --run [script name]', 'run a previously saved script')
     .option('-d --delete [script name]', 'delete a previously saved script')
+    .option('-D --documented', 'prepends the command to the questions when running a script')
     .option('-A --deleteAll [script name]', 'delete all previously saved scripts')
     .option('-p --print [script name]', 'print a saved script')
     .option('-S --shell', 'set the which shell should run commands')

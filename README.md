@@ -1,4 +1,4 @@
-# Pyr
+# 📜 Pyr
 
 __pyr__ is a tool for storing and running project specific commands in the CLI and documenting those commands in an easy format that can be committed directly to a projects repo for developers to share common commands.
 
