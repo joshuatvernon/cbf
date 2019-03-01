@@ -2,13 +2,19 @@
 
 const program = require('commander');
 const inquirer = require('inquirer');
+const readline = require('readline')
 const yaml = require('yamljs');
 const chalk = require('chalk');
 const rx = require('rxjs');
 const fse = require('fs-extra');
 const { spawn } = require('child_process');
-const prompts = new rx.Subject();
+let prompts = new rx.Subject();
 const configFilePath = __dirname + '/config.json';
+
+const { options } = require('./program');
+const CommandAdder = require('./command-adder');
+
+let promptsSubscription;
 
 // config
 let config = {
@@ -16,18 +22,24 @@ let config = {
     scripts: {}
 }
 
+let tempConfig;
+
 // current script
 let currentScript = {
     name: '',
     questions: {},
-    documentedQuestions: {},
     commands: {},
     directories: {}
 }
 
 let featureFlags = {
-    documented: false
+    documented: false,
+    adding: false,
+    addingCommand: false,
 }
+
+const ADD_OPTION = `${chalk.red.bold('option')}`;
+const ADD_COMMAND = `${chalk.red.bold('command')}`;
 
 /**
  * Message factory
@@ -38,6 +50,13 @@ const message = (function () {
         switch (messageType) {
             case 'menu':
                 message = 'Run a script or display help?';
+                break;
+            case 'menuAdding':
+                message = `Which script would you like to add a ${chalk.red.bold('command')} or ${chalk.red.bold('option')} to?`;
+                break;
+            case 'didNotReplaceCommand':
+                // args[0] = old command, args[1] = new command
+                message = `\nDid not replace ${chalk.red.bold(args[0])} with ${chalk.red.bold(args[1])}.`;
                 break;
             case 'shellSet':
                 // args[0] = shell to be set
@@ -95,6 +114,10 @@ const message = (function () {
             case 'duplicateScript':
                 // args[0] = pre-existing script
                 message = `A script with the name ${chalk.blue.bold(args[1])} already exists.\n\nTry running ${chalk.blue.bold(`pyr -u ${args[0]} ${args[1]}`)}`;
+                break;
+            case 'savedNewCommand':
+                // args[0] = new command name, args[1] = script name
+                message = `\nSaved ${args[0]} command to the ${chalk.blue.bold(args[1])} script. Try running ${chalk.blue.bold(`pyr -r ${args[1]}`)} to use it.`;
                 break;
             case 'quit':
                 message = 'Bye ✌️';
@@ -168,13 +191,13 @@ const runCommand = (commandKey) => {
     let child_process = spawn(command, {shell: config.shell, stdio: 'inherit', detached: true}, (err, stdout, stderr) => {
         if (err) {
             console.log(error('errorRunningCommand', command, err));
-            prompts.complete;
+            prompts.complete();
             process.exit();
         }
     });
 
     child_process.on('exit', () => {
-        console.log(chalk.blue.bold('\npyr exited'));
+        process.exit();
     });
 
     process.on('SIGINT', () => {
@@ -217,10 +240,11 @@ const getDirToCDInto = (key) => {
  * Prompt the user to choose a shell
  */
 const whichShell = () => {
-    inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
+    promptsSubscription = inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
         config.shell = `/bin/${answer}`;
         saveConfig();
         console.log('\n' + message('shellSet', config.shell));
+        promptsSubscription.unsubscribe();
         prompts.complete();
     }, (err) => {
         console.warn(err);
@@ -300,6 +324,13 @@ const saveConfig = () => {
 }
 
 /**
+ * Copy the config
+ */
+const copyConfig = () => {
+    tempConfig = JSON.parse(JSON.stringify(config));
+}
+
+/**
  * Load the config
  */
 const loadConfig = () => {
@@ -329,12 +360,14 @@ const listScripts = () => {
  * Prompt the user whether or not the delete the current script
  */
 const shouldDeleteScript = () => {
-    inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
+    promptsSubscription = inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
         if (answer === false) {
             console.log(message('scriptNotDeleted', currentScript.name));
+            promptsSubscription.unsubscribe();
             prompts.complete();
         } else {
             deleteScript(currentScript.name);
+            promptsSubscription.unsubscribe();
             prompts.complete();
         }
     }, (err) => {
@@ -357,12 +390,14 @@ const shouldDeleteAllScripts = () => {
         // no scripts to delete
         console.log(message('noScriptsToDelete'));
     } else {
-        inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
+        promptsSubscription = inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
             if (answer === false) {
                 console.log(message('scriptsNotDeleted'));
+                promptsSubscription.unsubscribe();
                 prompts.complete();
             } else {
                 deleteAllScripts();
+                promptsSubscription.unsubscribe();
                 prompts.complete();
             }
         }, (err) => {
@@ -459,30 +494,30 @@ const processScriptRecurse = (script, key) => {
         }
     } else if (script.hasOwnProperty('options')) {
         let choices = [];
-        let choicesWithCommands = [];
+        // let choicesWithCommands = [];
         for (var option in script['options']) {
             processScriptRecurse(script['options'][option], key + '.' + option);
             choices.push(option);
-            if (script['options'][option].hasOwnProperty('command')) {
-                // document choice with command
-                option += ' -> ' + chalk.red.bold(script['options'][option]['command']);
-            }
-            choicesWithCommands.push(option);
+            // if (script['options'][option].hasOwnProperty('command')) {
+            //     // document choice with command
+            //     option += ' -> ' + chalk.red.bold(script['options'][option]['command']);
+            // }
+            // choicesWithCommands.push(option);
         }
         if (currentScript.name !== key) {
             // add default back option to every question to be able to second last option to go back
             choices.push('back');
-            choicesWithCommands.push('back');
+            // choicesWithCommands.push('back');
         }
         // add default quit option to every question so as to be able to display last option as quitting pyr
         choices.push('quit');
-        choicesWithCommands.push('quit');
+        // choicesWithCommands.push('quit');
         config.scripts[currentScript.name].questions[key] = {
             type: 'list',
             name: getNameFromKey(key),
             message: script['message'],
             choices: choices,
-            choicesWithCommands: choicesWithCommands
+            // choicesWithCommands: choicesWithCommands
         };
     }
 }
@@ -505,34 +540,210 @@ const getParentKey = (key) => {
     return key.substr(0, key.lastIndexOf('.'));
 }
 
+function addQuestion(key) {
+    prompts.next(getNextQuestion(key));
+}
+
+function addQuestionOrRunCommand(key) {
+    if (config.scripts[currentScript.name]['commands'].hasOwnProperty(key)) {
+        runCommand(key);
+    } else {
+        addQuestion(key);
+    }
+}
+
+const handleQuit = () => {
+    prompts.complete();
+    process.exit();
+}
+
+const handleBack = (currentQuestion) => {
+    const nextQuestion = getParentKey(currentQuestion);
+    prompts.next(getNextQuestion(nextQuestion));
+    return nextQuestion;
+}
+
+const handleHelp = () => {
+    prompts.complete();
+    program.help();
+}
+
+const handleStartScriptFromMenu = (scriptName) => {
+    currentScript.name = scriptName;
+    const nextQuestion = scriptName;
+    return nextQuestion;
+}
+
+const addOptionToConfig = (optionName) => {
+    console.log(`optionName: ${optionName}`);
+}
+
+const sanitiseChoices = () => {
+    Object.keys(config.scripts[currentScript.name]['questions']).map((questionKey, index) => {
+        config.scripts[currentScript.name]['questions'][questionKey].choices = config.scripts[currentScript.name]['questions'][questionKey].choices.filter(choice => {
+            return choice !== ADD_OPTION && choice !== ADD_COMMAND;
+        });
+    });
+}
+
+const updateCommandInConfig = ({
+    name,
+    formattedName,
+    commandMessage,
+    directory,
+    command,
+    questionKey,
+}) => {
+    const commandKey = `${questionKey}.${formattedName}`;
+    const oldCommand = tempConfig.scripts[currentScript.name]['commands'][commandKey].command;
+    let message = `Replace ${chalk.red.bold(name)} awith ${chalk.red.bold(command)} command`;
+    if (commandMessage && !directory) {
+        message += ` and ${chalk.red.bold(commandMessage)} message?`;
+    } else if (!commandMessage && directory) {
+        message += ` and ${chalk.red.bold(directory)} directory?`;
+    } else if (commandMessage && directory) {
+        message += `, ${chalk.red.bold(commandMessage)} message and ${chalk.red.bold(directory)} directory?`;
+    }
+    prompts.next({
+        type: 'confirm',
+        name: 'confirm-replace-command',
+        message,
+    });
+}
+
+const addCommandToConfig = ({
+    name,
+    formattedName,
+    commandMessage,
+    directory,
+    command,
+    questionKey,
+}) => {
+    // add the command choice to the config
+    const choices = tempConfig.scripts[currentScript.name]['questions'][questionKey].choices;
+    if (!choices.includes(name)) {
+        let index;
+        if (choices.indexOf('back') > -1) {
+            index = choices.indexOf('back');
+        } else {
+            index = choices.indexOf('quit');
+        }
+        tempConfig.scripts[currentScript.name]['questions'][questionKey].choices.splice(index, 0, name);
+    }
+
+    // create the new command
+    const newCommand = {
+        command: command,
+    };
+    if (commandMessage) {
+        newCommand['message'] = commandMessage;
+    }
+
+    // add the command to the config
+    const commandKey = `${questionKey}.${formattedName}`;
+    tempConfig.scripts[currentScript.name]['commands'] = {
+        ...tempConfig.scripts[currentScript.name]['commands'],
+        [commandKey]: newCommand,
+     };
+
+     if (directory) {
+         // add directory to run the command in to the config
+         const directories = tempConfig.scripts[currentScript.name]['directories'];
+         tempConfig.scripts[currentScript.name]['directories'] = { ...directories, [commandKey]: directory };
+     }
+
+    config = tempConfig;
+
+    saveConfig();
+
+    console.log(message('savedNewCommand', name, currentScript.name));
+}
+
+const addOption = (currentQuestion) => {
+    prompts.complete();
+    const rl = readline.createInterface({
+        input: process.stdin,
+        output: process.stdout
+    });
+
+    rl.question('name: ', (name) => {
+        // TODO - figure out how to add options
+        addOptionToConfig(name);
+        rl.close();
+    });
+}
+
+const doesCommandAlreadyExist = ({ commandKey }) => {
+    return tempConfig.scripts[currentScript.name]['commands'][commandKey];
+}
+
 /**
  * Run the current script
  */
 const runScript = () => {
     let currentQuestion = currentScript.name;
 
-    inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
-        if (answer === 'quit') {
-            prompts.complete();
-            process.exit();
+    const commandAdder = new CommandAdder();
+
+    promptsSubscription = inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
+        if (featureFlags.addingCommand) {
+            commandAdder.nextAnswer(answer);
+            const question = commandAdder.nextQuestion();
+
+            if (question) {
+                prompts.next(question);
+            } else {
+                const formattedName = commandAdder.answers.name.replace(/\s+/g, '.');
+                if (typeof answer !== 'boolean' && doesCommandAlreadyExist({ commandKey: `${currentQuestion}.${formattedName}` })) {
+                    updateCommandInConfig({
+                        questionKey: currentQuestion,
+                        ...commandAdder.answers,
+                        formattedName
+                    });
+                } else {
+                    if (answer) {
+                        addCommandToConfig({
+                            questionKey: currentQuestion,
+                            ...commandAdder.answers,
+                            formattedName
+                        });
+                    } else {
+                        const oldCommand = config.scripts[currentScript.name]['commands'][`${currentQuestion}.${formattedName}`].command;
+                        console.log(message('didNotReplaceCommand', oldCommand, commandAdder.answers.command));
+                    }
+                    handleQuit();
+                }
+            }
+        } else if (answer === 'quit') {
+            handleQuit();
         } else if (answer === 'back') {
-            currentQuestion = getParentKey(currentQuestion);
-            prompts.next(getNextQuestion(currentQuestion));
+            currentQuestion = handleBack(currentQuestion);
         } else if (currentScript.name === '') {
             if (answer === 'help') {
-                prompts.complete();
-                program.help();
+                handleHelp();
             } else {
-                currentScript.name = answer;
-                currentQuestion = answer;
-                prompts.next(getNextQuestion(currentQuestion));
+                currentQuestion = handleStartScriptFromMenu(answer);
+                addQuestionOrRunCommand(currentQuestion);
             }
         } else {
-            currentQuestion += '.' + answer;
-            if (config.scripts[currentScript.name]['questions'].hasOwnProperty(currentQuestion)) {
-                prompts.next(getNextQuestion(currentQuestion));
-            } else if (config.scripts[currentScript.name]['commands'].hasOwnProperty(currentQuestion)) {
-                runCommand(currentQuestion);
+            if (featureFlags.documented) {
+                answer = getChoiceFromDocumentedChoice(answer);
+            }
+            if (featureFlags.added) {
+                console.log(answer);
+            } else if (featureFlags.adding) {
+                if (answer === ADD_OPTION) {
+                    addOption(currentQuestion);
+                } else if (answer === ADD_COMMAND) {
+                    featureFlags.addingCommand = true;
+                    prompts.next(commandAdder.nextQuestion());
+                } else {
+                    currentQuestion += '.' + answer;
+                    addQuestionOrRunCommand(currentQuestion);
+                }
+            } else {
+                currentQuestion += '.' + answer;
+                addQuestionOrRunCommand(currentQuestion);
             }
         }
     }, (err) => {
@@ -544,18 +755,72 @@ const runScript = () => {
     if (currentScript.name === '') {
         prompts.next(getMenuQuestion());
     } else {
-        prompts.next(getNextQuestion(currentScript.name));
+        addQuestionOrRunCommand(currentScript.name);
+    }
+}
+
+function getChoiceFromDocumentedChoice(documentedChoice) {
+    return documentedChoice.split(':')[0];
+}
+
+function getDocumentedChoice(questionKey, choice) {
+    const commandKey = `${questionKey}.${choice}`;
+    const commandObject = config.scripts[currentScript.name]['commands'][commandKey];
+    if (commandObject) {
+        const command = config.scripts[currentScript.name]['commands'][commandKey]['command'];
+        return `${choice}: ${chalk.red.bold(command)}`;
+    }
+    return choice;
+}
+
+function getDocumentedChoicesFromChoices(questionKey, choices) {
+    return choices.map(choice => getDocumentedChoice(questionKey, choice));
+}
+
+function getChoicesWithoutCommands(questionKey, choices) {
+    return choices.filter(choice => {
+        const commandKey = `${questionKey}.${choice}`;
+        const isCommand = Boolean(config.scripts[currentScript.name]['commands'][commandKey]);
+        return !isCommand;
+    });
+}
+
+const appendAddingChoicesToQuestion = (questionKey) => {
+    const addingChoices = [ADD_COMMAND, ADD_OPTION];
+    choices = config.scripts[currentScript.name]['questions'][questionKey].choices;
+    const hasAddingChoices = addingChoices.every(choice => choices.includes(choice));
+    if (!hasAddingChoices) {
+        config.scripts[currentScript.name]['questions'][questionKey].choices = getChoicesWithoutCommands(questionKey, choices);
+
+        let index;
+        if (config.scripts[currentScript.name]['questions'][questionKey].choices.indexOf('back') > -1) {
+            index = config.scripts[currentScript.name]['questions'][questionKey].choices.indexOf('back');
+        } else {
+            index = config.scripts[currentScript.name]['questions'][questionKey].choices.indexOf('quit');
+        }
+        // Append adding commands just before `back` and `quit`
+        config.scripts[currentScript.name]['questions'][questionKey].choices.splice(index, 0, ADD_OPTION);
+        config.scripts[currentScript.name]['questions'][questionKey].choices.splice(index, 0, ADD_COMMAND);
     }
 }
 
 /**
- * Return the
+ * Return the next question
  *
  * @argument questionKey
  */
-function getNextQuestion(questionKey) {
+const getNextQuestion = (questionKey) => {
     if (featureFlags.documented) {
-        config.scripts[currentScript.name]['questions'][questionKey].choices = config.scripts[currentScript.name]['questions'][questionKey].choicesWithCommands;
+        config.scripts[currentScript.name]['questions'][questionKey].choices = getDocumentedChoicesFromChoices(questionKey, config.scripts[currentScript.name]['questions'][questionKey].choices);
+    }
+    if (featureFlags.adding) {
+        const addingChoices = [ADD_COMMAND, ADD_OPTION];
+        choices = config.scripts[currentScript.name]['questions'][questionKey].choices;
+        const hasAddingChoices = addingChoices.every(choice => choices.includes(choice));
+        if (!hasAddingChoices) {
+            config.scripts[currentScript.name]['questions'][questionKey].message = `Add a ${chalk.red.bold('command')} or ${chalk.red.bold('option')} to ${chalk.blue.bold(questionKey)}?`;
+            appendAddingChoicesToQuestion(questionKey);
+        }
     }
     return config.scripts[currentScript.name]['questions'][questionKey];
 }
@@ -564,13 +829,12 @@ function getNextQuestion(questionKey) {
  * Return a question to prompt the user whether to a script, display help or quit
  */
 const getMenuQuestion = () => {
-    let choices = Object.keys(config.scripts);
-    // add help and quit elements
-    Array.prototype.push.apply(choices, ['help', 'quit']);
+    const scriptNames = Object.keys(config.scripts);
+    const choices = [...scriptNames, 'help', 'quit'];
     return {
         type: 'list',
         name: 'menu',
-        message: message('menu'),
+        message: featureFlags.adding ? message('menuAdding') : message('menu'),
         choices: choices
     };
 }
@@ -585,7 +849,6 @@ const newScript = (script, ymlFileName) => {
     if (!doesScriptExist()) {
         config.scripts[currentScript.name] = {
             questions: {},
-            documentedQuestions: {},
             commands: {},
             directories: {}
         };
@@ -597,13 +860,12 @@ const newScript = (script, ymlFileName) => {
 }
 
 /**
- * Check if one of the options was passed
+ * Check if one or more of the options were passed
  */
-function noOptionPassed() {
-    if (!program.run && !program.save && !program.list && !program.delete && !program.documented && !program.deleteAll && !program.update && !program.print && !program.shell && !program.config) {
-        return true;
-    }
-    return false;
+const noOptionPassed = () => {
+    return !Object.keys(options)
+            .map((key, value) => options[key].name)
+            .some(optionName => program.hasOwnProperty(optionName));
 }
 
 /**
@@ -636,6 +898,19 @@ const run = () => {
                 }
             }
         }
+        if (program.add) {
+            const scriptName = process.argv[3];
+            if (scriptName) {
+                currentScript.name = scriptName;
+                if (!doesScriptExist()) {
+                    console.log(message('scriptDoesNotExist', currentScript.name));
+                    process.exit();
+                }
+            }
+            featureFlags.adding = true;
+            copyConfig();
+            runScript();
+        }
         if (program.update) {
             const ymlFileName = process.argv[4];
             if (isValidYamlFileName(ymlFileName)) {
@@ -662,6 +937,13 @@ const run = () => {
         }
         if (program.documented) {
             featureFlags.documented = true;
+            if (process.argv.length === 3) {
+                if (hasScripts()) {
+                    runScript();
+                } else {
+                    program.help();
+                }
+            }
         }
         if (program.run) {
             currentScript.name = program.run;
@@ -699,19 +981,21 @@ const run = () => {
     }
 }
 
-program
-    .version('1.0.4')
-    .usage('[options]')
-    .option('-l --list', 'list previously saved scripts')
-    .option('-s --save [path to .yml file]', 'process and save a script')
-    .option('-u --update [script name] [path to .yml file]', 'process and update a script')
-    .option('-r --run [script name]', 'run a previously saved script')
-    .option('-d --delete [script name]', 'delete a previously saved script')
-    .option('-D --documented', 'prepends the command to the questions when running a script')
-    .option('-A --deleteAll [script name]', 'delete all previously saved scripts')
-    .option('-p --print [script name]', 'print a saved script')
-    .option('-S --shell', 'set the which shell should run commands')
-    .option('-c --config', 'display configuration')
-    .parse(process.argv);
+const setupProgram = () => {
+    program.version('1.0.4');
+    program.usage('[options]');
+
+    // Add program options
+    Object.keys(options).forEach((key, value) => {
+        const option = options[key];
+        const arguments = option.args.length > 0 ? `[${option.args.join('] [')}]` : '';
+        const details = `-${option.flag} --${option.name} ${arguments}`;
+        const description = `${option.description}`;
+        program.option(details, description);
+    });
+    program.parse(process.argv);
+}
+
+setupProgram();
 
 run();

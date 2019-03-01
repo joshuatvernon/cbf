@@ -17,7 +17,7 @@ hello:
                 australian:
                     directory: "~/Desktop/Australia"
                     message: "G'day world!"
-                    command: "echo g'day world >> australian.txt"
+                    command: "echo \"g'day world\" >> australian.txt"
                 british:
                     directory: "~/Desktop/British"
                     message: "Hello world!"
