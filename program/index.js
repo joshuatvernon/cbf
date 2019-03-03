@@ -57,7 +57,7 @@ const unsortedOptions = {
     },
     shell: {
         name: 'shell',
-        flag: 's',
+        flag: 'S',
         description: 'set the which shell should run commands',
         args: []
     },

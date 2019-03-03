@@ -8,167 +8,34 @@ const chalk = require('chalk');
 const rx = require('rxjs');
 const fse = require('fs-extra');
 const { spawn } = require('child_process');
-let prompts = new rx.Subject();
-const configFilePath = __dirname + '/config.json';
 
 const { options } = require('./program');
 const CommandAdder = require('./command-adder');
+const MessageService = require('./message-service');
+const ErrorMessageService = require('./error-message-service');
 
-let promptsSubscription;
-
-// config
-let config = {
-    shell: '/bin/bash',
-    scripts: {}
+const ADD_OPTION = `${chalk.red.bold('option')}`;
+const ADD_COMMAND = `${chalk.red.bold('command')}`;
+const configFilePath = __dirname + '/config.json';
+const featureFlags = {
+    adding: false,
+    addingCommand: false,
+    documented: false
 }
-
-let tempConfig;
-
-// current script
-let currentScript = {
+const currentScript = {
     name: '',
     questions: {},
     commands: {},
     directories: {}
 }
 
-let featureFlags = {
-    documented: false,
-    adding: false,
-    addingCommand: false,
+let prompts = new rx.Subject();
+let promptsSubscription;
+let tempConfig;
+let config = {
+    shell: '/bin/bash',
+    scripts: {}
 }
-
-const ADD_OPTION = `${chalk.red.bold('option')}`;
-const ADD_COMMAND = `${chalk.red.bold('command')}`;
-
-/**
- * Message factory
- */
-const message = (function () {
-    return function (messageType, ...args) {
-        let message = '';
-        switch (messageType) {
-            case 'menu':
-                message = 'Run a script or display help?';
-                break;
-            case 'menuAdding':
-                message = `Which script would you like to add a ${chalk.red.bold('command')} or ${chalk.red.bold('option')} to?`;
-                break;
-            case 'didNotReplaceCommand':
-                // args[0] = old command, args[1] = new command
-                message = `\nDid not replace ${chalk.red.bold(args[0])} with ${chalk.red.bold(args[1])}.`;
-                break;
-            case 'shellSet':
-                // args[0] = shell to be set
-                message = `Shell was set to ${chalk.blue.bold(args[0])}`;
-                break;
-            case 'commandMessage':
-                // args[0] = command message to be printed
-                message = '\n' + args[0] + '\n';
-                break;
-            case 'runCommand':
-                // args[0] = command to be run, args[1] = directory to run command in
-                message = `\nRunning: ${chalk.blue.bold(args[0])} in ${chalk.blue.bold(args[1])}\n`;
-                break;
-            case 'printConfig':
-                // args[0] = config
-                message = `pyr Config:\n${chalk.blue.bold(JSON.stringify(args[0], null, 4))}`;
-                break;
-            case 'savedScript':
-                // args[0] = saved script
-                message = `Saved script as ${chalk.blue.bold(args[0])}\n\nUse ${chalk.blue.bold(`pyr -r ${args[0]}`)} to run it`;
-                break;
-            case 'scriptNotReplaced':
-                // args[0] = script to be replaced
-                message = `${chalk.blue.bold(args[0])} script not replaced; exiting pyr`;
-                break;
-            case 'listScripts':
-                // args[0] = scripts
-                for (let scriptName in config.scripts) {
-                    message += `${chalk.blue.bold(scriptName)}\n`;
-                }
-                // remove trailing newline
-                message = message.replace(/\n$/, "");
-                break;
-            case 'shouldDelete':
-                // args[0] = script to be deleted
-                message = `Delete ${chalk.blue.bold(args[0])} script (this action cannot be undone)?`;
-                break;
-            case 'shouldDeleteScript':
-                message = 'Delete all scripts (this action cannot be undone)?';
-                break;
-            case 'scriptNotDeleted':
-                // args[0] = script to be deleted
-                message = `${chalk.blue.bold(args[0])} script not deleted; exiting pyr`;
-                break;
-            case 'noScriptsToDelete':
-                message = 'There are currently no scripts to delete; exiting pyr';
-                break;
-            case 'scriptsNotDeleted':
-                message = 'Scripts not deleted; exiting pyr';
-                break;
-            case 'deletedScript':
-                // args[0] = deleted script
-                message = `Deleted ${chalk.blue.bold(args[0])} script; exiting pyr`;
-                break;
-            case 'duplicateScript':
-                // args[0] = pre-existing script
-                message = `A script with the name ${chalk.blue.bold(args[1])} already exists.\n\nTry running ${chalk.blue.bold(`pyr -u ${args[0]} ${args[1]}`)}`;
-                break;
-            case 'savedNewCommand':
-                // args[0] = new command name, args[1] = script name
-                message = `\nSaved ${args[0]} command to the ${chalk.blue.bold(args[1])} script. Try running ${chalk.blue.bold(`pyr -r ${args[1]}`)} to use it.`;
-                break;
-            case 'quit':
-                message = 'Bye ✌️';
-        }
-        return message;
-    }
-}());
-
-/**
- * Error message factory
- */
-const error = (function () {
-    return function (errorType, ...args) {
-        let errorMessage = '';
-        switch (errorType) {
-            case 'noSavedScripts':
-                errorMessage = `You have no saved scripts.\n\nYou can save a script by using ${chalk.blue.bold('pyr -s [path to .yml file]')}`;
-                break;
-            case 'errorDeletingScript':
-                // args[0] = script to be deleted
-                errorMessage = `Error deleting ${chalk.blue.bold(args[0])} script; exiting pyr`;
-                break;
-            case 'scriptTagNameDoesNotMatch':
-                // args[0] = new script name, args[1] = .yml file name, args[2] = script to be updated
-                errorMessage = `script tag in ${chalk.blue.bold(args[0])} script in ${chalk.blue.bold(args[1])} does not match the ${chalk.blue.bold(args[2])} script you are trying to update`;
-                break;
-            case 'scriptToBeUpdatedDoesNotExist':
-                // args[0] = current script, args[1] = .yml file name
-                errorMessage = `${chalk.blue.bold(args[0])} script doesn\'t exist to be updated\n\nTry saving it as a new script by running ${chalk.blue.bold(`pyr -s ${args[1]}`)}`;
-                break;
-            case 'noYmlFile':
-                errorMessage = `No path to .yml file passed in\n\nTry rerunning with ${chalk.blue.bold('pyr -s [path to .yml file]')}`;
-                break;
-            case 'incorrectYmlFile':
-                // args[0] = .yml file name
-                errorMessage = `${chalk.blue.bold(args[0])} is an incorrect .yml filename`;
-                break;
-            case 'scriptDoesNotExist':
-                // args[0] = script to be run
-                errorMessage = `There is currently no saved script with the name ${chalk.blue.bold(args[0])}\n\nTry resaving it by using ${chalk.blue.bold('pyr -s [path to .yml file]')}`;
-                break;
-            case 'errorRunningCommand':
-                // args[0] = command to be run, args[1] = error message
-                errorMessage = `\n\nError executing ${chalk.blue.bold(args[0])} command\n\n${chalk.red.bold(args[1])}`;
-                break;
-            default:
-                errorMessage = `There was an unknown error; feel free to report this on ${chalk.blue.bold('https://www.npmjs.com/')} or ${chalk.blue.bold('https://wwww.github.com/')}`;
-        }
-        return errorMessage;
-    }
-}());
 
 /**
  * Run a command in the configured shell and exit if a sigint is received
@@ -183,14 +50,14 @@ const runCommand = (commandKey) => {
 
     const commandDir = getDirToCDInto(commandKey);
 
-    console.log(message('runCommand', command, commandDir));
+    console.log(MessageService('runCommand', command, commandDir));
 
     // prepend command to change directory to
     command = 'cd ' + commandDir + ' && ' + command;
 
     let child_process = spawn(command, {shell: config.shell, stdio: 'inherit', detached: true}, (err, stdout, stderr) => {
         if (err) {
-            console.log(error('errorRunningCommand', command, err));
+            console.log(ErrorMessageService('errorRunningCommand', command, err));
             prompts.complete();
             process.exit();
         }
@@ -211,8 +78,10 @@ const runCommand = (commandKey) => {
  * @argument commandKey key of command to find command message
  */
 const printCommandMessageIfPresent = (commandKey) => {
-    if (config.scripts[currentScript.name]['commands'][commandKey].hasOwnProperty('message')) {
-        console.log(message('commandMessage', config.scripts[currentScript.name]['commands'][commandKey]['message']));
+    const command = config.scripts[currentScript.name]['commands'][commandKey];
+
+    if (command.hasOwnProperty('message')) {
+        console.log(MessageService('commandMessage', command['message']));
     }
 }
 
@@ -243,7 +112,7 @@ const whichShell = () => {
     promptsSubscription = inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
         config.shell = `/bin/${answer}`;
         saveConfig();
-        console.log('\n' + message('shellSet', config.shell));
+        console.log('\n' + MessageService('shellSet', config.shell));
         promptsSubscription.unsubscribe();
         prompts.complete();
     }, (err) => {
@@ -265,7 +134,20 @@ const whichShell = () => {
  * @argument colour colour to print the JSON
  */
 const printJson = (obj, colour) => {
-    return console.log(chalk[colour].bold(JSON.stringify(script, null, 4)));
+    return console.log(chalk[colour].bold(JSON.stringify(obj, null, 4)));
+}
+
+/**
+ * Check if a file path ends in a valid .yaml file name
+ *
+ * @argument scriptName a .yaml file name to validate
+ */
+const addEmptyScriptToConfig = (scriptName) => {
+    config.scripts[scriptName] = {
+        questions: {},
+        commands: {},
+        directories: {}
+    };
 }
 
 /**
@@ -313,7 +195,7 @@ const getFirstKey = (object) => {
  * Print the config file to the console
  */
 const displayConfig = () => {
-    console.log(message('printConfig', config));
+    console.log(MessageService('printConfig', config));
 }
 
 /**
@@ -349,10 +231,10 @@ const loadConfig = () => {
  */
 const listScripts = () => {
     if (Object.keys(config.scripts).length === 0) {
-        console.log(error('noSavedScripts'));
+        console.log(ErrorMessageService('noSavedScripts'));
     } else {
         // print out script names and paths
-        console.log(message('listScripts', config.scripts));
+        console.log(MessageService('listScripts', config.scripts));
     }
 }
 
@@ -362,7 +244,7 @@ const listScripts = () => {
 const shouldDeleteScript = () => {
     promptsSubscription = inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
         if (answer === false) {
-            console.log(message('scriptNotDeleted', currentScript.name));
+            console.log(MessageService('scriptNotDeleted', currentScript.name));
             promptsSubscription.unsubscribe();
             prompts.complete();
         } else {
@@ -377,7 +259,7 @@ const shouldDeleteScript = () => {
     prompts.next({
         type: 'confirm',
         name: 'shouldDelete',
-        message: message('shouldDelete', currentScript.name),
+        message: MessageService('shouldDelete', currentScript.name),
         default: false
     });
 }
@@ -388,11 +270,11 @@ const shouldDeleteScript = () => {
 const shouldDeleteAllScripts = () => {
     if (!hasScripts()) {
         // no scripts to delete
-        console.log(message('noScriptsToDelete'));
+        console.log(MessageService('noScriptsToDelete'));
     } else {
         promptsSubscription = inquirer.prompt(prompts).ui.process.subscribe(({ answer }) => {
             if (answer === false) {
-                console.log(message('scriptsNotDeleted'));
+                console.log(MessageService('scriptsNotDeleted'));
                 promptsSubscription.unsubscribe();
                 prompts.complete();
             } else {
@@ -407,7 +289,7 @@ const shouldDeleteAllScripts = () => {
         prompts.next({
             type: 'confirm',
             name: 'shouldDeleteAll',
-            message: message('shouldDeleteScript'),
+            message: MessageService('shouldDeleteScript'),
         });
     }
 }
@@ -446,7 +328,7 @@ const printScript = () => {
 const deleteScript = () => {
     delete config.scripts[currentScript.name];
     saveConfig();
-    console.log(message('deletedScript', currentScript.name));
+    console.log(MessageService('deletedScript', currentScript.name));
 }
 
 /**
@@ -462,7 +344,7 @@ const deleteAllScripts = () => {
  */
 const saveScript = () => {
     saveConfig();
-    console.log(message('savedScript', currentScript.name));
+    console.log(MessageService('savedScript', currentScript.name));
 }
 
 /**
@@ -494,30 +376,21 @@ const processScriptRecurse = (script, key) => {
         }
     } else if (script.hasOwnProperty('options')) {
         let choices = [];
-        // let choicesWithCommands = [];
         for (var option in script['options']) {
             processScriptRecurse(script['options'][option], key + '.' + option);
             choices.push(option);
-            // if (script['options'][option].hasOwnProperty('command')) {
-            //     // document choice with command
-            //     option += ' -> ' + chalk.red.bold(script['options'][option]['command']);
-            // }
-            // choicesWithCommands.push(option);
         }
         if (currentScript.name !== key) {
             // add default back option to every question to be able to second last option to go back
             choices.push('back');
-            // choicesWithCommands.push('back');
         }
         // add default quit option to every question so as to be able to display last option as quitting pyr
         choices.push('quit');
-        // choicesWithCommands.push('quit');
         config.scripts[currentScript.name].questions[key] = {
             type: 'list',
             name: getNameFromKey(key),
             message: script['message'],
             choices: choices,
-            // choicesWithCommands: choicesWithCommands
         };
     }
 }
@@ -656,7 +529,7 @@ const addCommandToConfig = ({
 
     saveConfig();
 
-    console.log(message('savedNewCommand', name, currentScript.name));
+    console.log(MessageService('savedNewCommand', name, currentScript.name));
 }
 
 const addOption = (currentQuestion) => {
@@ -709,7 +582,7 @@ const runScript = () => {
                         });
                     } else {
                         const oldCommand = config.scripts[currentScript.name]['commands'][`${currentQuestion}.${formattedName}`].command;
-                        console.log(message('didNotReplaceCommand', oldCommand, commandAdder.answers.command));
+                        console.log(MessageService('didNotReplaceCommand', oldCommand, commandAdder.answers.command));
                     }
                     handleQuit();
                 }
@@ -834,7 +707,7 @@ const getMenuQuestion = () => {
     return {
         type: 'list',
         name: 'menu',
-        message: featureFlags.adding ? message('menuAdding') : message('menu'),
+        message: featureFlags.adding ? MessageService('menuAdding') : MessageService('menu'),
         choices: choices
     };
 }
@@ -847,16 +720,25 @@ const getMenuQuestion = () => {
  */
 const newScript = (script, ymlFileName) => {
     if (!doesScriptExist()) {
-        config.scripts[currentScript.name] = {
-            questions: {},
-            commands: {},
-            directories: {}
-        };
+        addEmptyScriptToConfig(currentScript.name);
         processScript(script);
         saveScript();
     } else {
-        console.log(message('duplicateScript', currentScript.name, ymlFileName));
+        console.log(MessageService('duplicateScript', currentScript.name, ymlFileName));
     }
+}
+
+const hasLocalPyrFile = (ymlFileName) => {
+    return fse.existsSync(ymlFileName);
+}
+
+const loadLocalPyrFile = (localYmlFileName) => {
+    const script = loadYmlFile(localYmlFileName);
+    currentScript.name = getFirstKey(script);
+    // process script into questions and commands
+    addEmptyScriptToConfig(currentScript.name);
+    processScript(script);
+    runScript();
 }
 
 /**
@@ -873,9 +755,11 @@ const noOptionPassed = () => {
  */
 const run = () => {
     loadConfig();
-
     if (noOptionPassed()) {
-        if (hasScripts()) {
+        const ymlFileName = `${process.cwd()}/pyr.yml`;
+        if (hasLocalPyrFile(ymlFileName)) {
+            loadLocalPyrFile(ymlFileName);
+        } else if (hasScripts()) {
             runScript();
         } else {
             program.help();
@@ -892,9 +776,9 @@ const run = () => {
                 newScript(script, ymlFileName);
             } else {
                 if (ymlFileName === true) {
-                    console.log(error('noYmlFile'));
+                    console.log(ErrorMessageService('noYmlFile'));
                 } else {
-                    console.log(error('incorrectYmlFile', ymlFileName));
+                    console.log(ErrorMessageService('incorrectYmlFile', ymlFileName));
                 }
             }
         }
@@ -903,7 +787,7 @@ const run = () => {
             if (scriptName) {
                 currentScript.name = scriptName;
                 if (!doesScriptExist()) {
-                    console.log(message('scriptDoesNotExist', currentScript.name));
+                    console.log(MessageService('scriptDoesNotExist', currentScript.name));
                     process.exit();
                 }
             }
@@ -917,11 +801,11 @@ const run = () => {
                 const script = loadYmlFile(ymlFileName);
                 currentScript.name = getFirstKey(script);
                 if (currentScript.name !== program.update) {
-                    console.log(error('scriptTagNameDoesNotMatch', currentScript.name, ymlFileName, program.update));
+                    console.log(ErrorMessageService('scriptTagNameDoesNotMatch', currentScript.name, ymlFileName, program.update));
                     process.exit();
                 }
                 if (!doesScriptExist()) {
-                    console.log(message('scriptDoesNotExist', currentScript.name));
+                    console.log(MessageService('scriptDoesNotExist', currentScript.name));
                     process.exit();
                 }
                 // process script into questions and commands
@@ -929,9 +813,9 @@ const run = () => {
                 saveScript();
             } else {
                 if (ymlFileName === true) {
-                    console.log(error('noYmlFile'));
+                    console.log(ErrorMessageService('noYmlFile'));
                 } else {
-                    console.log(error('incorrectYmlFile', ymlFileName));
+                    console.log(ErrorMessageService('incorrectYmlFile', ymlFileName));
                 }
             }
         }
@@ -950,7 +834,7 @@ const run = () => {
             if (doesScriptExist()) {
                 runScript();
             } else {
-                console.log(error('scriptDoesNotExist', currentScript.name));
+                console.log(ErrorMessageService('scriptDoesNotExist', currentScript.name));
             }
         }
         if (program.list) {
@@ -969,7 +853,7 @@ const run = () => {
             if (doesScriptExist()) {
                 printScript();
             } else {
-                console.log(error('scriptDoesNotExist', currentScript.name));
+                console.log(ErrorMessageService('scriptDoesNotExist', currentScript.name));
             }
         }
         if (program.shell) {
