@@ -50,7 +50,6 @@ Add and commit a `pyr.yml` to your project so developers can run `pyr` or `pyr -
     Usage: pyr [options]
 
     Options:
-
       -V, --version                                   output the version number
       -c, --config                                    display configuration
       -d, --delete [script name]                      delete a previously saved script
@@ -58,7 +57,7 @@ Add and commit a `pyr.yml` to your project so developers can run `pyr` or `pyr -
       -D, --documented                                prepends the command to the questions when running a script
       -l, --list                                      list previously saved scripts
       -m, --modify [script name]                      modify a previously saved script
-      -p, --print <script name>                       print a saved script
+      -p, --print [script name]                       print a saved script
       -r, --run [script name]                         run a previously saved script
       -s, --save <path to .yml file>                  process and save a script
       -S, --shell                                     set the which shell should run commands

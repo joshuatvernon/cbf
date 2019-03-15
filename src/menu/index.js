@@ -44,6 +44,7 @@ class Menu {
                     safeExit();
                     break;
                 default:
+                    console.log('');
                     subscriber.unsubscribe();
                     const args = [answer];
                     this.operationRun(args);
