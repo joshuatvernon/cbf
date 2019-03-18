@@ -13,6 +13,7 @@ npm i pyr -g
 __PYR__ uses the concept of _scripts_ stored as `.yml` files. Scripts are made up of `options`, `command`, `message` and `directory` tags that are used to construct the layout of the script e.g.
 
 ```yaml
+---
 hello:
     message: "What language would you like to use?"
     directory: "~/Desktop"
