@@ -1,10 +1,16 @@
-# 📜 Pyr
+# 📜 PYR
 
-__pyr__ is a tool for storing and running project specific commands in the CLI and documenting those commands in an easy format that can be committed directly to a projects repo for developers to share common commands.
+__PYR__ is a tool for storing and running project specific commands in the CLI and documenting those commands in an easy format that can be committed directly to a projects repo for developers to share common commands.
+
+### Installation
+
+```sh
+npm i pyr -g
+```
 
 ### Scripts
 
-__pyr__ uses the concept of _scripts_ stored as `.yml` files. Scripts are made up of `options`, `command`, `message` and `directory` tags that are used to construct the layout of the script e.g.
+__PYR__ uses the concept of _scripts_ stored as `.yml` files. Scripts are made up of `options`, `command`, `message` and `directory` tags that are used to construct the layout of the script e.g.
 
 ```yaml
 hello:
@@ -32,15 +38,16 @@ hello:
                     command: "echo hello world >> british.txt"
 ```
 
-Scripts are easy to build and follow simple rules:
+PYR scripts are easy to build and follow simple rules:
 1. The first tag in a script serves as the scripts name
 2. `options` tags are used to store lists of more `options` or `command`'s
 3. `command` tags are used to store a string containing a shell command
 4. `message` tags are used to store messages that are printed to stdout when an option or command is selected
-5. `directory` tags are used to set where a command should be ran. When a command is ran, __pyr__ recursively searches for the most recent `directory` tag to `cd` into
+5. `directory` tags are used to set where a command should be ran. When a command is ran, __PYR__ recursively searches for the commands set directory or closest set parent `directory` tag
 
-#### Local PYR file
-Add and commit a `pyr.yml` to your project so developers can run `pyr` or `pyr -D` to run shared commands.
+### Local PYR file
+
+Commit a `pyr.yml` to your repository and developers can run `pyr` or `pyr -D` to run shared commands.
 
 ### Commands
 
