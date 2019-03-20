@@ -138,7 +138,7 @@ const addOperationsToCommander = () => {
 };
 
 const init = () => {
-    commander.version('1.0.1');
+    commander.version('1.0.2');
     commander.usage('[options]');
     addOperationsToCommander();
     commander.parse(process.argv);
