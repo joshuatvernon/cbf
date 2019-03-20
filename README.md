@@ -41,7 +41,7 @@ hello:
                     command: "echo hello world >> british.txt"
 ```
 
-CBF scripts are easy to build and follow simple rules:
+__CBF__ scripts are easy to build and follow simple rules:
 1. The first tag in a script serves as the scripts name
 2. `options` tags are used to store lists of more `options` or `command`'s
 3. `command` tags are used to store a string containing a shell command
