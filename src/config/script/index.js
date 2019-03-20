@@ -80,7 +80,14 @@ class Script {
                         key = `${key}.${answer}`;
                         if (this.getOption(key)) {
                             const documented = CurrentOperatingMode.get() === OperatingMode.RUNNING_WITH_DOCUMENTATION;
-                            const option = this.getOption(key, documented);
+
+                            let option = this.getOption(key, documented);
+                            if (!option.getMessage()) {
+                                // Option didn't have a message; set the default message
+                                option = Option.copy(option);
+                                option.updateMessage('Choose an option');
+                            }
+
                             prompts.next(option);
                         } else if (this.getCommand(key)) {
                             const command = this.getCommand(key);
