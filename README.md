@@ -1,5 +1,7 @@
 # 🛌 CBF
 
+[![npm version](https://badge.fury.io/js/cbf.svg)](https://badge.fury.io/js/cbf) [![dependencies](https://david-dm.org/joshuatvernon/cbf.js.svg?theme=shields.io)](https://david-dm.org/joshuatvernon/cbf.js)
+
 __CBF__ is a simple CLI tool for developers who _can't be f#@!'d_ learning or remembering all the commands they have to run day to day or just in a specific repo.
 
 Developers build scripts that can either be saved directly to __CBF__ or loaded on the fly from a local `cbf.yml` file. The script will then serve as living, breathing runnable documentation for new starters, infrequent contributors or just developers who _can't be f#@!'d_ learning or remembering all the commands.
