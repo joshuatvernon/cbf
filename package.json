@@ -1,6 +1,6 @@
 {
     "name": "cbf",
-    "version": "1.0.3",
+    "version": "1.0.4",
     "description": "A package for creating scripts to store and run your most commonly used CLI commands for a repo or just in general",
     "main": "index.js",
     "author": "Joshua Vernon",
