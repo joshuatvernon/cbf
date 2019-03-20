@@ -1,6 +1,6 @@
 # 🛌 CBF
 
-[![npm version](https://badge.fury.io/js/cbf.svg)](https://badge.fury.io/js/cbf) [![dependencies](https://david-dm.org/joshuatvernon/cbf.js.svg?theme=shields.io)](https://david-dm.org/joshuatvernon/cbf.js)
+[![npm version](https://badge.fury.io/js/cbf.svg)](https://badge.fury.io/js/cbf) [![Build Status](https://travis-ci.com/joshuatvernon/cbf.svg?branch=master)](https://travis-ci.com/joshuatvernon/cbf) [![dependencies](https://david-dm.org/joshuatvernon/cbf.js.svg?theme=shields.io)](https://david-dm.org/joshuatvernon/cbf.js) [![vulnerabilities](https://snyk.io/test/github/joshuatvernon/cbf/badge.svg)](https://snyk.io/test/github/joshuatvernon/cbf)
 
 __CBF__ is a simple CLI tool for developers who _can't be f#@!'d_ learning or remembering all the commands they have to run day to day or just in a specific repo.
 

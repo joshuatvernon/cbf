@@ -40,5 +40,6 @@
     },
     "_moduleAliases": {
         "src": "./src"
-    }
+    },
+    "devDependencies": {}
 }
