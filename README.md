@@ -54,7 +54,7 @@ Commit a `cbf.yml` to your repository and developers can run `cbf` or `cbf -D` t
 
 ### Commands
 
-```sh
+```
 λ cbf
 
     Usage: cbf [options]
