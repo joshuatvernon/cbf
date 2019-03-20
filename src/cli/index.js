@@ -119,7 +119,7 @@ const handleArguments = () => {
         operations.forEach(operation => operation.run(args));
 
         if (operationsWithoutDocumented.length === 0) {
-            runMenuOrHelp();
+            handleNoOperations();
         }
     }
 }
