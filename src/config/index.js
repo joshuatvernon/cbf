@@ -16,7 +16,7 @@ const {
 const { throwError } = require('src/utility');
 
 /**
- * Config is stores pyr settings and scripts in memory and saves to config.json
+ * Config is stores CBF settings and scripts in memory and saves to config.json
  */
 class Config {
 

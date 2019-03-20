@@ -61,7 +61,7 @@ const parseScriptRecurse = (scriptName, ymlFile, key) => {
             choices.push('back');
         }
 
-        // add default quit option so as to be able to display last option as quitting pyr
+        // add default quit option so as to be able to display last option before quitting
         choices.push('quit');
         const option = new Option({
             name: getNameFromKey(key),

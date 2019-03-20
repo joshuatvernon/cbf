@@ -1,11 +1,8 @@
 {
-    "name": "pyr",
-    "version": "1.1.1",
-    "description": "A package for creating a script to store and run your most commonly used CLI commands",
+    "name": "cbf",
+    "version": "0.0.0",
+    "description": "A package for creating scripts to store and run your most commonly used CLI commands for a repo or just in general",
     "main": "index.js",
-    "scripts": {
-        "test": "test"
-    },
     "author": "Joshua Vernon",
     "engines": {
         "node": ">=0.10"
@@ -36,10 +33,10 @@
     ],
     "repository": {
         "type": "git",
-        "url": "https://github.com/joshuatvernon/pyr"
+        "url": "https://github.com/joshuatvernon/cbf"
     },
     "bin": {
-        "pyr": "index.js"
+        "cbf": "index.js"
     },
     "_moduleAliases": {
         "src": "./src"

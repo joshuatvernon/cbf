@@ -2,7 +2,7 @@
 
 const chalk = require('chalk');
 
-const PROGRAM_NAME = 'pyr';
+const PROGRAM_NAME = 'cbf';
 const DEFAULT_SHELL = '/bin/bash';
 const CONFIG_FILE_PATH = __dirname + '/../config/config.json';
 const LOCAL_YML_FILE_NAME = `${PROGRAM_NAME}.yml`;

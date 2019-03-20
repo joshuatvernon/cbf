@@ -2,9 +2,7 @@
 
 const chalk = require('chalk');
 
-const {
-    LOCAL_YML_FILE_NAME
-} = require('src/constants');
+const { LOCAL_YML_FILE_NAME } = require('src/constants');
 
 /**
  * Return message
@@ -54,15 +52,15 @@ const lookupMessage = (messageKey, ...args) => {
             break;
         case 'printConfig':
             // args[0] = config
-            message = `pyr Config:\n${chalk.cyan.bold(JSON.stringify(args[0], null, 4))}`;
+            message = `CBF Config:\n${chalk.cyan.bold(JSON.stringify(args[0], null, 4))}`;
             break;
         case 'savedScript':
             // args[0] = saved script name
-            message = `Saved script as ${chalk.cyan.bold(args[0])}\n\nUse ${chalk.cyan.bold(`pyr -r ${args[0]}`)} to run it`;
+            message = `Saved script as ${chalk.cyan.bold(args[0])}\n\nUse ${chalk.cyan.bold(`${PROGRAM_NAME} -r ${args[0]}`)} to run it`;
             break;
         case 'updatedScript':
             // args[0] = updated script name
-            message = `Updated ${chalk.cyan.bold(args[0])} script\n\nUse ${chalk.cyan.bold(`pyr -r ${args[0]}`)} to run it`;
+            message = `Updated ${chalk.cyan.bold(args[0])} script\n\nUse ${chalk.cyan.bold(`${PROGRAM_NAME} -r ${args[0]}`)} to run it`;
             break;
         case 'loadedScript':
             // args[0] = loaded script name
@@ -102,11 +100,11 @@ const lookupMessage = (messageKey, ...args) => {
             break;
         case 'duplicateScript':
             // args[0] = pre-existing script
-            message = `A script with the name ${chalk.cyan.bold(args[0])} already exists.\n\nTry running ${chalk.cyan.bold(`pyr -u ${args[1]}`)} to update it`;
+            message = `A script with the name ${chalk.cyan.bold(args[0])} already exists.\n\nTry running ${chalk.cyan.bold(`${PROGRAM_NAME} -u ${args[1]}`)} to update it`;
             break;
         case 'savedNewCommand':
             // args[0] = new command name, args[1] = script name
-            message = `\nSaved ${chalk.magenta.bold(args[0])} command to the ${chalk.cyan.bold(args[1])} script. Try running ${chalk.cyan.bold(`pyr -r ${args[1]}`)} to use it.`;
+            message = `\nSaved ${chalk.magenta.bold(args[0])} command to the ${chalk.cyan.bold(args[1])} script. Try running ${chalk.cyan.bold(`${PROGRAM_NAME} -r ${args[1]}`)} to use it.`;
             break;
         case 'quit':
             message = 'Bye ✌️';
@@ -148,7 +146,7 @@ const lookupErrorMessage = (errorMessageKey, ...args) => {
             errorMessage = `There was no script named ${chalk.cyan.bold(args[0])} to update with ${chalk.cyan.bold(args[1])}`;
             break;
         case 'noSavedScripts':
-            errorMessage = `You have no saved scripts.\n\nYou can save a script by using ${chalk.cyan.bold('pyr -s [path to .yml file]')}`;
+            errorMessage = `You have no saved scripts.\n\nYou can save a script by using ${chalk.cyan.bold(`${PROGRAM_NAME} -s [path to .yml file]`)}`;
             break;
         case 'errorDeletingScript':
             // args[0] = script to be deleted
@@ -160,10 +158,10 @@ const lookupErrorMessage = (errorMessageKey, ...args) => {
             break;
         case 'scriptToBeUpdatedDoesNotExist':
             // args[0] = current script, args[1] = .yml file name
-            errorMessage = `${chalk.cyan.bold(args[0])} script doesn\'t exist to be updated\n\nTry saving it as a new script by running ${chalk.cyan.bold(`pyr -s ${args[1]}`)}`;
+            errorMessage = `${chalk.cyan.bold(args[0])} script doesn\'t exist to be updated\n\nTry saving it as a new script by running ${chalk.cyan.bold(`${PROGRAM_NAME} -s ${args[1]}`)}`;
             break;
         case 'noYmlFile':
-            errorMessage = `No path to .yml file passed in\n\nTry rerunning with ${chalk.cyan.bold('pyr -s [path to .yml file]')}`;
+            errorMessage = `No path to .yml file passed in\n\nTry rerunning with ${chalk.cyan.bold(`${PROGRAM_NAME} -s [path to .yml file]`)}`;
             break;
         case 'invalidYmlFile':
             // args[0] = .yml file name
@@ -171,7 +169,7 @@ const lookupErrorMessage = (errorMessageKey, ...args) => {
             break;
         case 'scriptDoesNotExist':
             // args[0] = script to be run
-            errorMessage = `There is currently no saved script with the name ${chalk.cyan.bold(args[0])}\n\nTry resaving it by using ${chalk.cyan.bold('pyr -s [path to .yml file]')}`;
+            errorMessage = `There is currently no saved script with the name ${chalk.cyan.bold(args[0])}\n\nTry resaving it by using ${chalk.cyan.bold(`${PROGRAM_NAME} -s [path to .yml file]`)}`;
             break;
         case 'errorRunningCommand':
             // args[0] = command to be run, args[1] = error message

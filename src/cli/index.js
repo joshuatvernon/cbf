@@ -69,11 +69,11 @@ const getOperationsFromCommander = () => {
     return operations;
 }
 
-const hasLocalPyrFile = () => {
+const hasLocalCbfFile = () => {
     return fse.existsSync(PATH_TO_LOCAL_YML);
 }
 
-const loadLocalPyrFile = () => {
+const loadLocalCbfFile = () => {
     Parser.runScript(PATH_TO_LOCAL_YML);
 }
 
@@ -92,8 +92,8 @@ const runMenuOrHelp = () => {
 }
 
 const handleNoOperations = () => {
-    if (hasLocalPyrFile()) {
-        loadLocalPyrFile();
+    if (hasLocalCbfFile()) {
+        loadLocalCbfFile();
     } else {
         runMenuOrHelp();
     }
@@ -138,7 +138,7 @@ const addOperationsToCommander = () => {
 };
 
 const init = () => {
-    commander.version('1.1.1');
+    commander.version('1.0.0');
     commander.usage('[options]');
     addOperationsToCommander();
     commander.parse(process.argv);
