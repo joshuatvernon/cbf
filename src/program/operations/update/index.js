@@ -23,14 +23,9 @@ const operation = {
     flag: 'u',
     description: 'process and update a script',
     args: [{
-            name: 'script name',
-            required: true
-        },
-        {
-            name: 'path to .yml file',
-            required: true
-        }
-    ],
+        name: 'path to .yml file',
+        required: true
+    }],
     whitelist: [],
     run: handler
 };
