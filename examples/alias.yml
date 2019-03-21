@@ -1,0 +1,7 @@
+---
+# An example `alias` command to show that single commands can also be stored for
+# when you really can't be f#@!'d learning and remembering a command or just want
+# to easily run it everyday
+alias:
+    message: "Getting a random definition from Urban Dictionary..."
+    command: "curl -s http://api.urbandictionary.com/v0/random | jq -r '.list[0] | .word + \":\n\n\" +  .definition' | cat"

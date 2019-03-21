@@ -2,7 +2,13 @@
 
 const chalk = require('chalk');
 const yaml = require('yamljs');
+const os = require('os');
+const path = require("path");
 
+const {
+    print,
+    ERROR
+} = require('src/messages');
 const {
     prompts
 } = require('src/shims/inquirer');
@@ -76,12 +82,19 @@ const isValidYamlFileName = (fileName) => {
 /**
  * Load a .yml file into the program
  *
- * @argument string ymlFileName - yml file to load
+ * @argument {string} ymlFileName - yml file to load
  *
- * @returns Object ymlFile      - yml file
+ * @returns {Object} ymlFile      - yml file
  */
 const loadYmlFile = (ymlFileName) => {
-    return yaml.load(ymlFileName);
+    let ymlFile;
+    try {
+        ymlFile = yaml.load(ymlFileName);
+    } catch (exception) {
+        print(ERROR, 'errorLoadingYmlFile', ymlFileName, exception.message);
+        forceExit();
+    }
+    return ymlFile;
 };
 
 
@@ -146,7 +159,11 @@ const getDocumentedChoice = (script, optionKey, choice) => {
     const commandKey = `${optionKey}.${choice}`;
     const command = script.getCommand(commandKey);
     if (command) {
-        return `${choice} ${chalk.blue.bold('=>')} ${chalk.red.bold(command.getDirective())}`;
+        const directives = command.getDirectives();
+        if (directives.length === 1) {
+            return `${choice} ${chalk.blue.bold('=>')} ${chalk.red.bold(directives[0])}`;
+        }
+        return `${choice} ${chalk.blue.bold('=>')} ${chalk.red.bold(directives[0])} . . .`;
     }
     return choice;
 };
@@ -194,6 +211,20 @@ const isValidArgumentsLength = ({
 }
 
 /**
+ * If path is a relative path; resolve it and return absolute path
+ *
+ * @argument string relativePath - a relative path to be converted to an absolute path
+ *
+ * @returns string absolutePath  - an absolute path converted from the relative path
+ */
+const absolutePath = relativePath => {
+    if (relativePath[0] === '~') {
+        return path.resolve(path.join(os.homedir(), relativePath.slice(1)));
+    }
+    return relativePath;
+}
+
+/**
  * Cleans up and then exits program
  */
 const safeExit = () => {
@@ -210,6 +241,7 @@ const forceExit = () => {
 }
 
 module.exports = {
+    absolutePath: absolutePath,
     safeExit: safeExit,
     forceExit: forceExit,
     isValidArgumentsLength: isValidArgumentsLength,

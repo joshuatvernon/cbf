@@ -19,37 +19,36 @@ __CBF__ uses the concept of _scripts_ stored as `.yml` files. Scripts are made u
 __CBF__ scripts are easy to build and follow simple rules:
 1. The first tag is required and is the scripts name
 2. `options` tags are used to store lists of more `options` or `command`'s
-3. `command` tags are used to store a string containing a shell command
+3. `command` tags are used to store one or many strings containing shell commands
 4. `message` tags are used to store messages that are printed to stdout when an option or command is selected
 5. `directory` tags are used to set where a command should be ran. When a command is ran, __CBF__ recursively searches for the commands set directory or closest set parent `directory` tag
 
 ### Example Script
 
+Here is an example of a basic script in __CBF__. Also check out the other [examples](./examples).
+
 ```yaml
 ---
-hello:
-    message: "What language would you like to use?"
-    directory: "~/Desktop"
+example-project:
+    message: "Run, build or test example project?"
+    directory: "~/projects/example"
     options:
-        spanish:
-            directory: "~/Desktop/Spain"
-            message: "Hola mundo!"
-            command: "echo Hola mundo >> spanish.txt"
-        french:
-            directory: "~/Desktop/French"
-            message: "Bonjour le monde!"
-            command: "echo Bonjour le monde! >> french.txt"
-        english:
-            message: "Australian or British?"
-            directory: "~/Desktop/British"
+        run:
+            message: "Running example project..."
+            command: "yarn start"
+        build:
+            directory: "~/projects/example/src"
+            message: "Building example project..."
+            command: "yarn install"
+        test:
+            message: "Run unit or integration tests?"
             options:
-                australian:
-                    directory: "~/Desktop/Australia"
-                    message: "G'day world!"
-                    command: "echo g'day world >> australian.txt"
-                british:
-                    message: "Hello world!"
-                    command: "echo hello world >> british.txt"
+                unit:
+                    message: "Running example project unit tests"
+                    command: "yarn test:unit"
+                integration:
+                    message: "Running example project integration tests"
+                    command: "yarn test:integration"
 ```
 
 ### Local CBF file

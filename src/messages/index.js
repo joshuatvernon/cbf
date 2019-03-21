@@ -47,10 +47,26 @@ const lookupMessage = (messageKey, ...args) => {
             message = '\n' + args[0] + '\n';
             break;
         case 'runCommand':
-            // args[0] = command to be run, ?args[1] = directory to run command in
-            message = `\nRunning: ${chalk.cyan.bold(args[0])}`;
-            if (args[1]) {
-                message = `${message} in ${chalk.cyan.bold(args[1])}\n`;
+            // args[0] = commands to be run, ?args[1] = directory to run command in
+            if (args[0].length === 1) {
+                const command = JSON.stringify(args[0][0]).slice(1, -1);
+                message = `\nRunning ${chalk.cyan.bold(command)}`;
+                if (args[1]) {
+                    message = `${message} in ${chalk.cyan.bold(args[1])}`;
+                }
+                message += '\n';
+            } else {
+                message = '\nRunning';
+                if (args[1]) {
+                    message += ` commands in ${chalk.cyan.bold(args[1])}`;
+                }
+                message += '\n';
+                let command;
+                for (let i = 0; i < args[0].length; i++) {
+                    command = JSON.stringify(args[0][i]).slice(1, -1);
+                    message += `\n${chalk.cyan.bold(command)}`;
+                }
+                message += '\n';
             }
             break;
         case 'printConfig':
@@ -131,6 +147,10 @@ const Message = (() => {
 const lookupErrorMessage = (errorMessageKey, ...args) => {
     let errorMessage;
     switch (errorMessageKey) {
+        case 'errorLoadingYmlFile':
+            // args[0] = yml file name
+            errorMessage = `Error loading ${chalk.cyan.bold(args[0])} file\n\n${chalk.red.bold(args[1])}`;
+            break;
         case 'invalidFlags':
             // ...args = invalid flags
             const invalidArgs = args.filter(arg => arg !== '').map(arg => chalk.magenta.bold(arg)).join(', ');
@@ -150,6 +170,10 @@ const lookupErrorMessage = (errorMessageKey, ...args) => {
             break;
         case 'noSavedScripts':
             errorMessage = `You have no saved scripts.\n\nYou can save a script by using ${chalk.cyan.bold(`${PROGRAM_NAME} -s [path to .yml file]`)}`;
+            break;
+        case 'noSuchDirectory':
+            // args[0] = directory that doesn't exist
+            errorMessage = `\nCould not run command in non-existent ${chalk.red.bold(args[0])} directory`;
             break;
         case 'errorDeletingScript':
             // args[0] = script to be deleted
@@ -176,7 +200,15 @@ const lookupErrorMessage = (errorMessageKey, ...args) => {
             break;
         case 'errorRunningCommand':
             // args[0] = command to be run, args[1] = error message
-            errorMessage = `\n\nError executing ${chalk.cyan.bold(args[0])} command\n\n${chalk.magenta.bold(args[1])}`;
+            if (args[0].length === 1) {
+                errorMessage = `\n\nError executing ${chalk.cyan.bold(args[0][0])} command\n\n${chalk.magenta.bold(args[1])}`;
+            } else {
+                errorMessage = '\nError executing commands\n';
+                for (let i = 0; i < args[0].length; i++) {
+                    errorMessage += `\n${chalk.cyan.bold(args[0][i])}`;
+                }
+                errorMessage += `\n\n${chalk.magenta.bold(args[1])}`;
+            }
             break;
         default:
             errorMessage = `There was an unknown error; feel free to report this on ${chalk.cyan.bold('https://www.npmjs.com/')} or ${chalk.cyan.bold('https://wwww.github.com/')}`;

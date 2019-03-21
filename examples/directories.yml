@@ -1,0 +1,36 @@
+---
+# An example `projects` script to show how the `directory` tag can be used to store
+# commands related to directories
+projects:
+    directory: "~/projects"
+    options:
+        node:
+            message: "Node project"
+            directory: "~/projects/node"
+            # This command will be ran in ~/projects/node
+            command:
+                1: "nvm use"
+                2: "yarn start"
+        java:
+            message: "Java project"
+            directory: "~/projects/java"
+            # This command will be ran in ~/projects/java
+            command: "mvn exec:java -Dexec.mainClass=\"com.example.Main\""
+        python:
+            message: "Python project"
+            directory: "~/projects/python"
+            options:
+                run:
+                    # This command will be ran in ~/projects/python
+                    command: "python index.py"
+                install:
+                    directory: "~/projects/python/src"
+                    # This command will be ran in ~/projects/python/src
+                    command: "pip install -r requirements.txt"
+        new:
+            message: "Creating new project"
+            # This multiline command will be ran in ~/projects
+            command:
+                1: "mkdir new"
+                2: "cd new"
+                3: "git init"

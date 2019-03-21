@@ -37,8 +37,19 @@ const parseScriptRecurse = (scriptName, ymlFile, key) => {
         });
     }
     if (ymlFile.hasOwnProperty('command')) {
+        let directives = [];
+        if (typeof ymlFile['command'] === "string") {
+            directives.push(ymlFile['command']);
+        } else {
+            let line = 1;
+            while (ymlFile['command'].hasOwnProperty(line)) {
+                directives.push(ymlFile['command'][line]);
+                line++;
+            }
+        }
+
         const command = new Command({
-            directive: ymlFile['command']
+            directives: directives
         });
 
         if (ymlFile.hasOwnProperty('message')) {
@@ -56,8 +67,8 @@ const parseScriptRecurse = (scriptName, ymlFile, key) => {
             choices.push(option);
         }
 
-        if (scriptName !== key) {
-            // add default back option to every option to be able to second last option to go back
+        if (key !== scriptName) {
+            // If not top level add default back option to every option to be able to second last option to go back
             choices.push('back');
         }
 
@@ -65,9 +76,11 @@ const parseScriptRecurse = (scriptName, ymlFile, key) => {
         choices.push('quit');
         const option = new Option({
             name: getNameFromKey(key),
-            message: ymlFile['message'],
             choices: choices
         });
+        if (ymlFile.hasOwnProperty('message')) {
+            option.updateMessage(ymlFile['message']);
+        }
         GlobalConfig.getScript(scriptName).updateOption({
             optionKey: key,
             option: option
@@ -119,7 +132,6 @@ class Parser {
                 GlobalConfig.addScript(script);
                 parseScriptRecurse(script.getName(), ymlFile[script.getName()], script.getName());
                 GlobalConfig.save();
-
                 print(MESSAGE, 'savedScript', script.getName());
             } else {
                 print(MESSAGE, 'duplicateScript', script.getName(), ymlFileName);
