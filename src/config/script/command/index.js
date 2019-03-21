@@ -3,6 +3,7 @@
 const {
     spawn
 } = require('child_process');
+const fse = require('fs-extra');
 const lodash = require('lodash');
 
 const {
@@ -14,18 +15,20 @@ const {
     MESSAGE
 } = require('src/messages');
 const {
+    absolutePath,
     throwError,
-    safeExit
+    safeExit,
+    forceExit
 } = require('src/utility');
 
 class Command {
 
     constructor({
-        directive = '',
+        directives = [],
         message = ''
     } = {}) {
-        if (directive !== '') {
-            this.directive = directive;
+        if (directives !== []) {
+            this.directives = directives;
         }
         if (message !== '') {
             this.message = message;
@@ -44,61 +47,66 @@ class Command {
      */
     run({
         shell = DEFAULT_SHELL,
-        directory = ''
+        directory
     }) {
+        let path = '';
+        if (directory) {
+            path = absolutePath(directory.getPath());
+            if (!fse.existsSync(path)) {
+                print(ERROR, 'noSuchDirectory', directory.getPath());
+                forceExit();
+            }
+        }
+
+        const directive = this.getDirectives().join(' && ');
         if (this.getMessage()) {
             print(MESSAGE, 'commandMessage', this.getMessage());
         }
-
-        let directive;
         if (directory) {
-            const path = directory.getPath();
-            print(MESSAGE, 'runCommand', this.getDirective(), path);
-            directive = `cd ${path} && ${this.getDirective()}`;
-        } else {
-            print(MESSAGE, 'runCommand', this.getDirective());
-            directive = this.getDirective();
+            print(MESSAGE, 'runCommand', this.getDirectives(), directory.getPath());
         }
 
         const child_process = spawn(
             directive, {
+                cwd: path,
                 shell: shell,
                 stdio: 'inherit',
                 detached: true
             },
             (err, stdout, stderr) => {
                 if (err) {
-                    print(ERROR, 'errorRunningCommand', this.getDirective(), err);
+                    print(ERROR, 'errorRunningCommand', this.getDirectives(), err);
                     safeExit();
                 }
             }
         );
 
-        child_process.on('exit', () => {
+        child_process.on('exit', safeExit);
+        child_process.on('error', err => {
+            print(ERROR, 'errorRunningCommand', this.getDirective(), err);
             safeExit();
         });
-
         process.on('SIGINT', () => {
             process.kill(-child_process.pid, 'SIGINT');
         });
     }
 
     /**
-     * Returns the command directive
+     * Returns the command directives
      *
-     * @returns the command directive
+     * @returns the command directives
      */
-    getDirective() {
-        return this.directive;
+    getDirectives() {
+        return this.directives;
     }
 
     /**
-     * Updates the command directive
+     * Updates the command directives
      *
-     * @argument string directive - directive to update the command directive
+     * @argument string[] directives - directives to update the command directives
      */
-    updateDirective(directive) {
-        this.directive = directive;
+    updateDirectives(directives) {
+        this.directives = directives;
     }
 
     /**

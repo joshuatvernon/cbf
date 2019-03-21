@@ -1,0 +1,23 @@
+---
+# An example of a `common project commands` script that can be referenced from
+# a repository to share commonly used commands within a repo with other contributors
+example-project:
+    message: "Run, build or test example project?"
+    directory: "~/projects/example"
+    options:
+        run:
+            message: "Running example project..."
+            command: "yarn start"
+        build:
+            directory: "~/projects/example/src"
+            message: "Building example project..."
+            command: "yarn install"
+        test:
+            message: "Run unit or integration tests?"
+            options:
+                unit:
+                    message: "Running example project unit tests"
+                    command: "yarn test:unit"
+                integration:
+                    message: "Running example project integration tests"
+                    command: "yarn test:integration"

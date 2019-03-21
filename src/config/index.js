@@ -72,7 +72,7 @@ class Config {
                 if (scripts[scriptKey].hasOwnProperty('commands')) {
                     for (const commandKey in scripts[scriptKey].commands) {
                         const command = new Command({
-                            directive: scripts[scriptKey].commands[commandKey].directive
+                            directives: scripts[scriptKey].commands[commandKey].directives
                         });
                         const hasMessage = scripts[scriptKey].commands[commandKey].hasOwnProperty('message');
                         if (hasMessage) {
