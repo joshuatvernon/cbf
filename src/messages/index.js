@@ -5,7 +5,7 @@ const chalk = require('chalk');
 const {
     PROGRAM_NAME,
     LOCAL_YML_FILE_NAME
-} = require('src/constants');
+} = require('../constants');
 
 /**
  * Return message

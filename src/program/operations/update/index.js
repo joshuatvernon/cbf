@@ -2,11 +2,11 @@
 
 const {
     Parser
-} = require('src/parser');
+} = require('../../../parser');
 const {
     safeExit
-} = require('src/utility');
-const Operation = require('src/program/operations/operation');
+} = require('../../../utility');
+const Operation = require('../operation');
 
 const EXPECTED_ARGUMENTS_LENGTH = 1;
 

@@ -2,7 +2,7 @@
 
 const lodash = require('lodash');
 
-const { throwError } = require('src/utility');
+const { throwError } = require('../../../utility');
 
 class Directory {
 

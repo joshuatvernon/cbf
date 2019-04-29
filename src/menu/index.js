@@ -4,23 +4,23 @@ const noop = require('lodash/noop');
 
 const {
     GlobalConfig
-} = require('src/config');
+} = require('../config');
 const {
     Message
-} = require('src/messages');
+} = require('../messages');
 const {
     Option
-} = require('src/config/script');
+} = require('../config/script');
 const {
     commander
-} = require('src/shims/commander');
+} = require('../shims/commander');
 const {
     prompts,
     inquirerPrompts
-} = require('src/shims/inquirer');
+} = require('../shims/inquirer');
 const {
     safeExit
-} = require('src/utility');
+} = require('../utility');
 
 class Menu {
 

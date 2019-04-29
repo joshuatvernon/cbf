@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
-const ConfigOperation = require('src/program/operations/config');
-const DeleteAllOperation = require('src/program/operations/delete-all');
-const DeleteOperation = require('src/program/operations/delete');
-const DocumentedOperation = require('src/program/operations/documented');
-const ListOperation = require('src/program/operations/list');
-const ModifyOperation = require('src/program/operations/modify');
-const PrintOperation = require('src/program/operations/print');
-const RunOperation = require('src/program/operations/run');
-const SaveOperation = require('src/program/operations/save');
-const ShellOperation = require('src/program/operations/shell');
-const UpdateOperation = require('src/program/operations/update');
+const ConfigOperation = require('./config');
+const DeleteAllOperation = require('./delete-all');
+const DeleteOperation = require('./delete');
+const DocumentedOperation = require('./documented');
+const ListOperation = require('./list');
+const ModifyOperation = require('./modify');
+const PrintOperation = require('./print');
+const RunOperation = require('./run');
+const SaveOperation = require('./save');
+const ShellOperation = require('./shell');
+const UpdateOperation = require('./update');
 
 const OperationTypes = Object.freeze({
     CONFIG: Symbol('config'),

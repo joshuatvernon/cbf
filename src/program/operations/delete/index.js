@@ -4,22 +4,22 @@ const noop = require('lodash/noop');
 
 const {
     GlobalConfig
-} = require('src/config');
+} = require('../../../config');
 const {
     print,
     Message,
     ERROR,
     MESSAGE
-} = require('src/messages');
+} = require('../../../messages');
 const {
     prompts,
     inquirerPrompts
-} = require('src/shims/inquirer');
+} = require('../../../shims/inquirer');
 const {
     safeExit
-} = require('src/utility');
-const Menu = require('src/menu');
-const Operation = require('src/program/operations/operation');
+} = require('../../../utility');
+const Menu = require('../../../menu');
+const Operation = require('../operation');
 
 const EXPECTED_ARGUMENTS_LENGTH = 1;
 

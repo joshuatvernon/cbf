@@ -6,14 +6,14 @@ const lodash = require('lodash');
 const {
     CONFIG_FILE_PATH,
     DEFAULT_SHELL
-} = require('src/constants');
+} = require('../constants');
 const {
     Script,
     Option,
     Command,
     Directory
-} = require('src/config/script');
-const { throwError } = require('src/utility');
+} = require('./script');
+const { throwError } = require('../utility');
 
 /**
  * Config is stores CBF settings and scripts in memory and saves to config.json

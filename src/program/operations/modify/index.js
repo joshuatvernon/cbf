@@ -6,33 +6,33 @@ const noop = require('lodash/noop');
 const {
     ADD_COMMAND,
     Modification
-} = require('src/constants');
+} = require('../../../constants');
 const {
     GlobalConfig
-} = require('src/config');
+} = require('../../../config');
 const {
     Script,
     Command,
     Directory
-} = require('src/config/script');
+} = require('../../../config/script');
 const {
     containsWhitespace,
     replaceWhitespace,
     isEmptyString,
     safeExit
-} = require('src/utility');
+} = require('../../../utility');
 const {
     print,
     ERROR,
     MESSAGE
-} = require('src/messages');
+} = require('../../../messages');
 const {
     prompts,
     inquirerPrompts
-} = require('src/shims/inquirer');
-const CommandAdder = require('src/command-adder');
-const Menu = require('src/menu');
-const Operation = require('src/program/operations/operation');
+} = require('../../../shims/inquirer');
+const CommandAdder = require('../../../command-adder');
+const Menu = require('../../../menu');
+const Operation = require('../operation');
 
 const MAX_EXPECTED_ARGUMENTS_LENGTH = 1;
 

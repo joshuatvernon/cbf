@@ -2,15 +2,15 @@
 
 const {
     GlobalConfig
-} = require('src/config');
+} = require('../../../config');
 const {
     MESSAGE,
     print
-} = require('src/messages');
+} = require('../../../messages');
 const {
     safeExit
-} = require('src/utility');
-const Operation = require('src/program/operations/operation');
+} = require('../../../utility');
+const Operation = require('../operation');
 
 const EXPECTED_ARGUMENTS_LENGTH = 0;
 

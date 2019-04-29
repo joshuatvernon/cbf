@@ -2,7 +2,7 @@
 
 const lodash = require('lodash');
 
-const { throwError } = require('src/utility');
+const { throwError } = require('../../../utility');
 
 const DEFAULT_OPTION_TYPE = 'list';
 

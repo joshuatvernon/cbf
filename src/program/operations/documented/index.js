@@ -3,8 +3,8 @@
 const {
     CurrentOperatingMode,
     OperatingMode
-} = require('src/operating-mode');
-const Operation = require('src/program/operations/operation');
+} = require('../../../operating-mode');
+const Operation = require('../operation');
 
 const handler = args => {
     CurrentOperatingMode.set(OperatingMode.RUNNING_WITH_DOCUMENTATION);
