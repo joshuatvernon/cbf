@@ -4,17 +4,17 @@ const chalk = require('chalk');
 
 const {
     GlobalConfig
-} = require('src/config');
+} = require('../../../config');
 const {
     print,
     ERROR
-} = require('src/messages');
+} = require('../../../messages');
 const {
     printJson,
     safeExit
-} = require('src/utility');
-const Menu = require('src/menu');
-const Operation = require('src/program/operations/operation');
+} = require('../../../utility');
+const Menu = require('../../../menu');
+const Operation = require('../operation');
 
 const OPERATION_NAME = 'print';
 const OPERATION_FLAG = 'p';

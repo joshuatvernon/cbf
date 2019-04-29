@@ -5,29 +5,29 @@ const fse = require('fs-extra');
 
 const {
     GlobalConfig
-} = require('src/config');
+} = require('../config');
 const {
     Operations,
     OperationTypes
-} = require('src/program');
+} = require('../program');
 const {
     PATH_TO_LOCAL_YML
-} = require('src/constants');
+} = require('../constants');
 const {
     Parser
-} = require('src/parser');
+} = require('../parser');
 const {
     commander
-} = require('src/shims/commander');
+} = require('../shims/commander');
 const {
     isValidArgumentsLength,
     safeExit
-} = require('src/utility');
+} = require('../utility');
 const {
     print,
     ERROR
-} = require('src/messages');
-const Menu = require('src/menu');
+} = require('../messages');
+const Menu = require('../menu');
 
 const validateArgumentLength = (operation, args) => {
     const minimumArgumentsLength = operation.args.filter(arg => arg.required).length;

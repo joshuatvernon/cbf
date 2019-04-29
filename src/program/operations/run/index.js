@@ -2,16 +2,16 @@
 
 const {
     GlobalConfig
-} = require('src/config');
+} = require('../../../config');
 const {
     print,
     ERROR
-} = require('src/messages');
+} = require('../../../messages');
 const {
     safeExit
-} = require('src/utility');
-const Menu = require('src/menu');
-const Operation = require('src/program/operations/operation');
+} = require('../../../utility');
+const Menu = require('../../../menu');
+const Operation = require('../operation');
 
 const MAX_EXPECTED_ARGUMENTS_LENGTH = 1;
 

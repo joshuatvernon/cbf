@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 
-const {
-    OperationTypes,
-    Operations
-} = require('src/program/operations');
+const { Operations, OperationTypes } = require('./operations');
 
 // Sort operations so they are always consistently displayed in the help menu
 const SortedOperationTypes = {};

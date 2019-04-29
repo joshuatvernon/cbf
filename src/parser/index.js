@@ -2,24 +2,24 @@
 
 const {
     GlobalConfig
-} = require('src/config');
+} = require('../config');
 const {
     Script,
     Option,
     Command,
     Directory
-} = require('src/config/script');
+} = require('../config/script');
 const {
     getFirstKey,
     getNameFromKey,
     isValidYamlFileName,
     loadYmlFile
-} = require('src/utility');
+} = require('../utility');
 const {
     print,
     MESSAGE,
     ERROR
-} = require('src/messages');
+} = require('../messages');
 
 /**
  * Helper to recursively parse script

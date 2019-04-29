@@ -8,18 +8,18 @@ const lodash = require('lodash');
 
 const {
     DEFAULT_SHELL
-} = require('src/constants');
+} = require('../../../constants');
 const {
     print,
     ERROR,
     MESSAGE
-} = require('src/messages');
+} = require('../../../messages');
 const {
     absolutePath,
     throwError,
     safeExit,
     forceExit
-} = require('src/utility');
+} = require('../../../utility');
 
 class Command {
 

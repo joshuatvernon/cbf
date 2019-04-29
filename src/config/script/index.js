@@ -2,8 +2,8 @@
 
 const lodash = require('lodash');
 
-const { ADD_COMMAND, DEFAULT_SHELL, Modification } = require('src/constants');
-const { CurrentOperatingMode, OperatingMode } = require('src/operating-mode');
+const { ADD_COMMAND, DEFAULT_SHELL, Modification } = require('../../constants');
+const { CurrentOperatingMode, OperatingMode } = require('../../operating-mode');
 const {
   containsWhitespace,
   getParentKey,
@@ -12,14 +12,14 @@ const {
   getUndocumentedChoice,
   getDocumentedChoices,
   safeExit
-} = require('src/utility');
+} = require('../../utility');
 const {
     prompts,
     inquirerPrompts
-} = require('src/shims/inquirer');
-const Command = require('src/config/script/command');
-const Directory = require('src/config/script/directory');
-const Option = require('src/config/script/option');
+} = require('../../shims/inquirer');
+const Command = require('./command');
+const Directory = require('./directory');
+const Option = require('./option');
 
 class Script {
 

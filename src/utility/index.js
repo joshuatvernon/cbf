@@ -8,10 +8,10 @@ const path = require("path");
 const {
     print,
     ERROR
-} = require('src/messages');
+} = require('../messages');
 const {
     prompts
-} = require('src/shims/inquirer');
+} = require('../shims/inquirer');
 
 /**
  * Throw an error with an optional error message
