@@ -1,33 +1,31 @@
 #!/usr/bin/env node
 
 const {
-    Parser
+  Parser,
 } = require('../../../parser');
 const {
-    safeExit
+  safeExit,
 } = require('../../../utility');
 const Operation = require('../operation');
 
-const EXPECTED_ARGUMENTS_LENGTH = 1;
+const handler = (args) => {
+  const ymlFileName = args[0];
 
-const handler = args => {
-    const ymlFileName = args[0];
+  Parser.updateScript(ymlFileName);
 
-    Parser.updateScript(ymlFileName);
-
-    safeExit();
+  safeExit();
 };
 
 const operation = {
-    name: 'update',
-    flag: 'u',
-    description: 'process and update a script',
-    args: [{
-        name: 'path to .yml file',
-        required: true
-    }],
-    whitelist: [],
-    run: handler
+  name: 'update',
+  flag: 'u',
+  description: 'process and update a script',
+  args: [{
+    name: 'path to .yml file',
+    required: true,
+  }],
+  whitelist: [],
+  run: handler,
 };
 
 module.exports = new Operation(operation);

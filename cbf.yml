@@ -1,0 +1,19 @@
+---
+dev:
+  options:
+    install:
+      command: "npm install"
+    build:
+      command: "npm install . -g"
+    clean:
+      command: "npm uninstall . -g"
+    lint:
+      command: "npm run lint"
+    test:
+      command: "npm run test"
+    deploy:
+      command:
+        1: "npm version patch"
+        2: "npm publish"
+    update-changelog:
+      command: "git-chglog -o CHANGELOG.md"

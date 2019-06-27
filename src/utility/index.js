@@ -3,51 +3,64 @@
 const chalk = require('chalk');
 const yaml = require('yamljs');
 const os = require('os');
-const path = require("path");
+const path = require('path');
 
 const {
-    print,
-    ERROR
+  print,
+  ERROR,
 } = require('../messages');
 const {
-    prompts
+  prompts,
 } = require('../shims/inquirer');
+
+/**
+ * Cleans up and then exits program
+ */
+const safeExit = () => {
+  prompts.complete();
+};
+
+/**
+ * Force exits program
+ */
+const forceExit = () => {
+  prompts.complete();
+  process.exit();
+};
 
 /**
  * Throw an error with an optional error message
  *
- * @argumemt string errorMessage - an error message to display to the user when throwing the error
+ * @argument string errorMessage - an error message to display to the user when throwing the error
  */
 const throwError = (errorMessage = '') => {
-    if (errorMessage) {
-        throw errorMessage;
-    }
-    throw 'Unknown error';
-}
+  if (errorMessage) {
+    throw new Error(errorMessage);
+  }
+  throw new Error('Unknown error');
+};
 
 /**
- * Return true if string contains any whitespace and flase otherwise
+ * Return true if string contains any whitespace and false otherwise
  *
  * @argument string string              - string to check for whitespace
  *
- * @returns  boolean containsWhiteSpace - true if string contained white space; false otherwise
+ * @returns  boolean endsWithWhitespace - true if string contained white space; false otherwise
  */
-const containsWhitespace = string => {
-    return string !== string.trim();
-}
+const endsWithWhitespace = string => string !== string.trim();
 
 /**
  * Replace the whitespace with the provided character and return string
  *
- * @argument string string - string to replace whitespace in
- * @argument string other  - string to replace whitespace with
+ * @argument string string    - string to replace whitespace in
+ * @argument string delimiter - string to replace whitespace with
  *
- * @returns  newString     - strign without whitespace
+ * @returns string newString  - string without whitespace
  */
-const replaceWhitespace = (string, other) => {
-    let newString = `${string}`;
-    return newString.replace(/\s+/g, other);
-}
+const replaceWhitespace = (string, delimiter) => {
+  const newString = `${string}`;
+  return newString.replace(/\s+/g, delimiter);
+};
 
 /**
  * Returns true if string is empty and false otherwise
@@ -65,7 +78,8 @@ const isEmptyString = string => string === '';
  * @argument string colour colour to print the JSON
  */
 const printJson = (obj, colour) => {
-    console.log(chalk[colour].bold(JSON.stringify(obj, null, 4)));
+  // eslint-disable-next-line no-console
+  console.log(chalk[colour].bold(JSON.stringify(obj, null, 4)));
 };
 
 /**
@@ -75,9 +89,7 @@ const printJson = (obj, colour) => {
  *
  * @returns boolean isValid  - true if file is a valid .yml file path
  */
-const isValidYamlFileName = (fileName) => {
-    return /.*\.yml/.test(fileName);
-};
+const isValidYamlFileName = fileName => /.*\.yml/.test(fileName);
 
 /**
  * Load a .yml file into the program
@@ -87,14 +99,14 @@ const isValidYamlFileName = (fileName) => {
  * @returns {Object} ymlFile      - yml file
  */
 const loadYmlFile = (ymlFileName) => {
-    let ymlFile;
-    try {
-        ymlFile = yaml.load(ymlFileName);
-    } catch (exception) {
-        print(ERROR, 'errorLoadingYmlFile', ymlFileName, exception.message);
-        forceExit();
-    }
-    return ymlFile;
+  let ymlFile;
+  try {
+    ymlFile = yaml.load(ymlFileName);
+  } catch (exception) {
+    print(ERROR, 'errorLoadingYmlFile', ymlFileName, exception.message);
+    forceExit();
+  }
+  return ymlFile;
 };
 
 
@@ -106,11 +118,8 @@ const loadYmlFile = (ymlFileName) => {
  * @returns string firstKey - the first key encountered
  */
 const getFirstKey = (object) => {
-    for (let key in object) {
-        if (object.hasOwnProperty(key)) {
-            return key;
-        }
-    }
+  const keys = Object.keys(object);
+  return keys[0] ? keys[0] : null;
 };
 
 /**
@@ -120,20 +129,16 @@ const getFirstKey = (object) => {
  *
  * @returns string name - the name of the key
  */
-const getNameFromKey = (key) => {
-    return key.split('.').pop();
-};
+const getNameFromKey = key => key.split('.').pop();
 
 /**
- * Return the key of the parent (the key is everything before the last occurance of a period)
+ * Return the key of the parent (the key is everything before the last occurrence of a period)
  *
  * @argument string key      - key to use to return the parent key from
  *
  * @returns string parentKey - the key of the parent
  */
-const getParentKey = (key) => {
-    return key.substr(0, key.lastIndexOf('.'));
-};
+const getParentKey = key => key.substr(0, key.lastIndexOf('.'));
 
 /**
  * Return choice with command directive stripped
@@ -142,9 +147,7 @@ const getParentKey = (key) => {
  *
  * @returns string undocumentedChoice - choice with documented command directive stripped
  */
-const getUndocumentedChoice = (documentedChoice) => {
-    return documentedChoice.split(` ${chalk.blue.bold('=>')}`)[0];
-};
+const getUndocumentedChoice = documentedChoice => documentedChoice.split(` ${chalk.blue.bold('=>')}`)[0];
 
 /**
  * Return choices with command directives appended to commands
@@ -156,16 +159,16 @@ const getUndocumentedChoice = (documentedChoice) => {
  * @returns string documentedChoice - choice with command directives appended to commands
  */
 const getDocumentedChoice = (script, optionKey, choice) => {
-    const commandKey = `${optionKey}.${choice}`;
-    const command = script.getCommand(commandKey);
-    if (command) {
-        const directives = command.getDirectives();
-        if (directives.length === 1) {
-            return `${choice} ${chalk.blue.bold('=>')} ${chalk.red.bold(directives[0])}`;
-        }
-        return `${choice} ${chalk.blue.bold('=>')} ${chalk.red.bold(directives[0])} . . .`;
+  const commandKey = `${optionKey}.${choice}`;
+  const command = script.getCommand(commandKey);
+  if (command) {
+    const directives = command.getDirectives();
+    if (directives.length === 1) {
+      return `${choice} ${chalk.blue.bold('=>')} ${chalk.red.bold(directives[0])}`;
     }
-    return choice;
+    return `${choice} ${chalk.blue.bold('=>')} ${chalk.red.bold(directives[0])} . . .`;
+  }
+  return choice;
 };
 
 /**
@@ -177,9 +180,9 @@ const getDocumentedChoice = (script, optionKey, choice) => {
  *
  * @returns string[] documentedChoices - choices with command directives appended to commands
  */
-const getDocumentedChoices = (script, optionKey, choices) => {
-    return choices.map(choice => getDocumentedChoice(script, optionKey, choice));
-};
+const getDocumentedChoices = (script, optionKey, choices) =>
+  // eslint-disable-next-line implicit-arrow-linebreak
+  choices.map(choice => getDocumentedChoice(script, optionKey, choice));
 
 /**
  * Returns true if arguments length is valid and false otherwise
@@ -192,23 +195,23 @@ const getDocumentedChoices = (script, optionKey, choices) => {
  * @returns boolean validLength - true if argument length is valid; false otherwise
  */
 const isValidArgumentsLength = ({
-    actual,
-    min,
-    max,
-    exact
+  actual,
+  min,
+  max,
+  exact,
 }) => {
-    let validLength = true;
-    if (typeof exact !== 'undefined' && exact !== actual) {
-        validLength = false;
-    }
-    if (typeof min !== 'undefined' && min > actual) {
-        validLength = false;
-    }
-    if (typeof max !== 'undefined' && max < actual) {
-        validLength = false;
-    }
-    return validLength;
-}
+  let validLength = true;
+  if (typeof exact !== 'undefined' && exact !== actual) {
+    validLength = false;
+  }
+  if (typeof min !== 'undefined' && min > actual) {
+    validLength = false;
+  }
+  if (typeof max !== 'undefined' && max < actual) {
+    validLength = false;
+  }
+  return validLength;
+};
 
 /**
  * If path is a relative path; resolve it and return absolute path
@@ -217,44 +220,28 @@ const isValidArgumentsLength = ({
  *
  * @returns string absolutePath  - an absolute path converted from the relative path
  */
-const absolutePath = relativePath => {
-    if (relativePath[0] === '~') {
-        return path.resolve(path.join(os.homedir(), relativePath.slice(1)));
-    }
-    return relativePath;
-}
-
-/**
- * Cleans up and then exits program
- */
-const safeExit = () => {
-    prompts.complete();
-}
-
-
-/**
- * Force exits program
- */
-const forceExit = () => {
-    prompts.complete();
-    process.exit();
-}
+const absolutePath = (relativePath) => {
+  if (relativePath[0] === '~') {
+    return path.resolve(path.join(os.homedir(), relativePath.slice(1)));
+  }
+  return relativePath;
+};
 
 module.exports = {
-    absolutePath: absolutePath,
-    safeExit: safeExit,
-    forceExit: forceExit,
-    isValidArgumentsLength: isValidArgumentsLength,
-    getUndocumentedChoice: getUndocumentedChoice,
-    getDocumentedChoices: getDocumentedChoices,
-    printJson: printJson,
-    containsWhitespace: containsWhitespace,
-    replaceWhitespace: replaceWhitespace,
-    isEmptyString: isEmptyString,
-    isValidYamlFileName: isValidYamlFileName,
-    loadYmlFile: loadYmlFile,
-    getFirstKey: getFirstKey,
-    getNameFromKey: getNameFromKey,
-    getParentKey: getParentKey,
-    throwError: throwError
+  absolutePath,
+  safeExit,
+  forceExit,
+  isValidArgumentsLength,
+  getUndocumentedChoice,
+  getDocumentedChoices,
+  printJson,
+  endsWithWhitespace,
+  replaceWhitespace,
+  isEmptyString,
+  isValidYamlFileName,
+  loadYmlFile,
+  getFirstKey,
+  getNameFromKey,
+  getParentKey,
+  throwError,
 };
