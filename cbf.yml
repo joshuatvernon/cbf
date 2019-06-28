@@ -11,9 +11,17 @@ dev:
       command: "npm run lint"
     test:
       command: "npm run test"
-    deploy:
-      command:
-        1: "npm version patch"
-        2: "npm publish"
+    npm:
+      options:
+        version:
+          options:
+            patch:
+              command: "npm version patch"
+            minor:
+              command: "npm version minor"
+            major:
+              command: "npm version major"
+        publish:
+          command: "npm publish"
     update-changelog:
       command: "git-chglog -o CHANGELOG.md"
