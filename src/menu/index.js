@@ -3,63 +3,64 @@
 const noop = require('lodash/noop');
 
 const {
-    GlobalConfig
+  GlobalConfig,
 } = require('../config');
 const {
-    Message
+  Message,
 } = require('../messages');
 const {
-    Option
+  Option,
 } = require('../config/script');
 const {
-    commander
+  commander,
 } = require('../shims/commander');
 const {
-    prompts,
-    inquirerPrompts
+  prompts,
+  inquirerPrompts,
 } = require('../shims/inquirer');
 const {
-    safeExit
+  safeExit,
 } = require('../utility');
 
 class Menu {
+  constructor({ operationName, operationRun }) {
+    this.operationName = operationName;
+    this.operationRun = operationRun;
+  }
 
-    constructor({ operationName, operationRun }) {
-        this.operationName = operationName;
-        this.operationRun = operationRun;
-    }
+  run() {
+    const subscriber = inquirerPrompts.subscribe(({
+      answer,
+    }) => {
+      switch (answer) {
+        case 'help':
+          commander.help();
+          subscriber.unsubscribe();
+          safeExit();
+          break;
+        case 'quit':
+          subscriber.unsubscribe();
+          safeExit();
+          break;
+        default: {
+          // eslint-disable-next-line no-console
+          console.log('');
+          subscriber.unsubscribe();
+          const args = [answer];
+          this.operationRun(args);
+        }
+      }
+    }, noop, noop);
 
-    run() {
-        const subscriber = inquirerPrompts.subscribe(({
-            answer
-        }) => {
-            switch (answer) {
-                case 'help':
-                    commander.help();
-                    subscriber.unsubscribe();
-                    safeExit();
-                    break;
-                case 'quit':
-                    subscriber.unsubscribe();
-                    safeExit();
-                    break;
-                default:
-                    console.log('');
-                    subscriber.unsubscribe();
-                    const args = [answer];
-                    this.operationRun(args);
-            }
-        }, noop, noop);
-
-        const scriptNames = Object.keys(GlobalConfig.getScripts());
-        const choices = [...scriptNames, 'help', 'quit'];
-        const option = new Option({
-            name: 'menu',
-            message: Message('menu', this.operationName),
-            choices: choices
-        });
-        prompts.next(option);
-    }
+    const scriptNames = Object.keys(GlobalConfig.getScripts());
+    const choices = [...scriptNames, 'help', 'quit'];
+    const option = new Option({
+      name: 'menu',
+      message: Message('menu', this.operationName),
+      choices,
+    });
+    prompts.next(option);
+  }
 }
 
 module.exports = Menu;

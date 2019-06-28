@@ -1,40 +1,39 @@
 #!/usr/bin/env node
 
 const {
-    GlobalConfig
+  GlobalConfig,
 } = require('../../../config');
 const {
-    print,
-    ERROR,
-    MESSAGE
+  print,
+  ERROR,
+  MESSAGE,
 } = require('../../../messages');
 const {
-    safeExit
+  safeExit,
 } = require('../../../utility');
 const Operation = require('../operation');
 
-const EXPECTED_ARGUMENTS_LENGTH = 0;
+const handler = () => {
+  GlobalConfig.load();
+  if (Object.keys(GlobalConfig.getScripts()).length === 0) {
+    print(ERROR, 'noSavedScripts');
+  } else {
+    // print out script names and paths
+    const scriptNames = Object.keys(GlobalConfig.getScripts())
+      .map(key => GlobalConfig.getScript(key).getName());
+    print(MESSAGE, 'listScripts', ...scriptNames);
+  }
 
-const handler = args => {
-    GlobalConfig.load();
-    if (Object.keys(GlobalConfig.getScripts()).length === 0) {
-        print(ERROR, 'noSavedScripts');
-    } else {
-        // print out script names and paths
-        const scriptNames = Object.keys(GlobalConfig.getScripts()).map((key, value) => GlobalConfig.getScript(key).getName());
-        print(MESSAGE, 'listScripts', ...scriptNames);
-    }
-
-    safeExit();
+  safeExit();
 };
 
 const operation = {
-    name: 'list',
-    flag: 'l',
-    description: 'list previously saved scripts',
-    args: [],
-    whitelist: [],
-    run: handler
+  name: 'list',
+  flag: 'l',
+  description: 'list previously saved scripts',
+  args: [],
+  whitelist: [],
+  run: handler,
 };
 
 module.exports = new Operation(operation);

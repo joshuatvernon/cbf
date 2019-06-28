@@ -1,53 +1,69 @@
 #!/usr/bin/env node
 
 const {
-    GlobalConfig
+  GlobalConfig,
 } = require('../../../config');
 const {
-    print,
-    ERROR
+  Parser,
+} = require('../../../parser');
+const {
+  print,
+  ERROR,
 } = require('../../../messages');
 const {
-    safeExit
+  safeExit,
+  isValidYamlFileName,
 } = require('../../../utility');
 const Menu = require('../../../menu');
 const Operation = require('../operation');
 
-const MAX_EXPECTED_ARGUMENTS_LENGTH = 1;
+const loadAndRunCbfFile = (ymlFilename) => {
+  Parser.runScript(ymlFilename);
+};
 
-const handler = args => {
-    GlobalConfig.load();
-    if (Object.keys(GlobalConfig.getScripts()).length === 0) {
-        print(ERROR, 'noSavedScripts');
-        safeExit();
-    } else if (args.length === 0) {
-        const menu = new Menu({
-            operationName: operation.name,
-            operationRun: operation.run
-        });
-        menu.run();
+const handler = (args) => {
+  GlobalConfig.load();
+  if (Object.keys(GlobalConfig.getScripts()).length === 0) {
+    if (args.length === 0) {
+      print(ERROR, 'noSavedScripts');
+      safeExit();
     } else {
-        const scriptName = args[0];
-        const script = GlobalConfig.getScript(scriptName);
-        if (script) {
-            script.run();
-        } else {
-            print(ERROR, 'scriptDoesNotExist', scriptName);
-            safeExit();
-        }
+      const ymlFilename = args[0];
+      loadAndRunCbfFile(ymlFilename);
     }
+  } else if (args.length === 0) {
+    const menu = new Menu({
+      operationName: operation.name,
+      operationRun: operation.run,
+    });
+    menu.run();
+  } else {
+    const scriptNameOrYmlFilename = args[0];
+    if (isValidYamlFileName(scriptNameOrYmlFilename)) {
+      const ymlFilename = args[0];
+      loadAndRunCbfFile(ymlFilename);
+    } else {
+      const script = GlobalConfig.getScript(scriptNameOrYmlFilename);
+      if (script) {
+        script.run();
+      } else {
+        print(ERROR, 'scriptDoesNotExist', scriptNameOrYmlFilename);
+        safeExit();
+      }
+    }
+  }
 };
 
 const operation = {
-    name: 'run',
-    flag: 'r',
-    description: 'run a previously saved script',
-    args: [{
-        name: 'script name',
-        required: false
-    }],
-    whitelist: ['documented'],
-    run: handler
+  name: 'run',
+  flag: 'r',
+  description: 'run a previously saved script',
+  args: [{
+    name: 'script name',
+    required: false,
+  }],
+  whitelist: ['documented'],
+  run: handler,
 };
 
 module.exports = new Operation(operation);

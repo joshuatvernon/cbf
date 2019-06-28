@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const {
-    init
+  init,
 } = require('./src/cli');
 
 init();

@@ -1,28 +1,26 @@
 #!/usr/bin/env node
 
 const OperatingMode = Object.freeze({
-    DEFAULT: Symbol("default"),
-    RUNNING: Symbol("running"),
-    RUNNING_WITH_DOCUMENTATION: Symbol("running-with-documentation")
+  DEFAULT: Symbol('default'),
+  RUNNING: Symbol('running'),
+  RUNNING_WITH_DOCUMENTATION: Symbol('running-with-documentation'),
 });
 
 class CurrentOperatingMode {
+  constructor() {
+    this.operatingMode = OperatingMode.DEFAULT;
+  }
 
-    constructor() {
-        this.operatingMode = OperatingMode.DEFAULT;
-    }
+  get() {
+    return this.operatingMode;
+  }
 
-    get() {
-        return this.operatingMode;
-    }
-
-    set(operatingMode) {
-        this.operatingMode = operatingMode;
-    }
-
+  set(operatingMode) {
+    this.operatingMode = operatingMode;
+  }
 }
 
 module.exports = {
-    CurrentOperatingMode: new CurrentOperatingMode(),
-    OperatingMode: OperatingMode
-}
+  CurrentOperatingMode: new CurrentOperatingMode(),
+  OperatingMode,
+};
