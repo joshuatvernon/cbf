@@ -1,4 +1,6 @@
-# 🛌 CBF
+# CBF
+
+![cbf sloth](images/sloth.png)
 
 [![npm version](https://badge.fury.io/js/cbf.svg)](https://badge.fury.io/js/cbf) [![Build Status](https://travis-ci.com/joshuatvernon/cbf.svg?branch=master)](https://travis-ci.com/joshuatvernon/cbf) [![vulnerabilities](https://snyk.io/test/github/joshuatvernon/cbf/badge.svg)](https://snyk.io/test/github/joshuatvernon/cbf)
 
