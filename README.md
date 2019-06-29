@@ -1,4 +1,4 @@
-# CBF
+# [CBF](https://joshuatvernon.github.io/cbf-site/)
 
 ![cbf sloth](images/sloth.png)
 
