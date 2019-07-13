@@ -7,6 +7,9 @@ cbf.yml
 # Mac
 .DS_Store
 
+# Github
+.github/
+
 # Yarn
 yarn.lock
 
@@ -23,6 +26,7 @@ CHANGELOG.md
 
 # Contributing
 CONTRIBUTING.md
+CODE_OF_CONDUCT.md
 
 # Editorconfig
 .editorconfig
