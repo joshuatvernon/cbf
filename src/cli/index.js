@@ -131,7 +131,7 @@ const addOperationsToCommander = () => {
 };
 
 const init = () => {
-  commander.version('1.1.3');
+  commander.version(process.env.npm_package_version);
   commander.usage('[options]');
   addOperationsToCommander();
   commander.parse(process.argv);
