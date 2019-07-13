@@ -16,11 +16,11 @@ dev:
         version:
           options:
             patch:
-              command: "npm version patch"
+              command: "npm version patch && npm run version"
             minor:
-              command: "npm version minor"
+              command: "npm version minor && npm run version"
             major:
-              command: "npm version major"
+              command: "npm version major && npm run version"
         publish:
           command: "npm publish"
     update-changelog:

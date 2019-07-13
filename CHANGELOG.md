@@ -1,4 +1,10 @@
 
+<a name="v1.1.4"></a>
+## [v1.1.4](https://github.com/joshuatvernon/cbf/compare/v1.1.3...v1.1.4)
+
+> 2019-07-13
+
+
 <a name="v1.1.3"></a>
 ## [v1.1.3](https://github.com/joshuatvernon/cbf/compare/v1.1.2...v1.1.3)
 

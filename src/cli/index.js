@@ -3,6 +3,7 @@
 const changeCase = require('change-case');
 const fse = require('fs-extra');
 
+const version = require('../../version');
 const {
   GlobalConfig,
 } = require('../config');
@@ -131,7 +132,7 @@ const addOperationsToCommander = () => {
 };
 
 const init = () => {
-  commander.version('1.1.3');
+  commander.version(version);
   commander.usage('[options]');
   addOperationsToCommander();
   commander.parse(process.argv);
