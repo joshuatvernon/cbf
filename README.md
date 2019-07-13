@@ -29,7 +29,7 @@ __CBF__ scripts are easy to build and follow simple rules:
 
 ### Example Script
 
-Here is an example of a basic script in __CBF__. Also check out the other [examples](./examples).
+Here is a basic example script in __CBF__. Also check out the other [examples](./examples) scripts.
 
 ```yaml
 ---
