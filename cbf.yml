@@ -16,11 +16,17 @@ dev:
         version:
           options:
             patch:
-              command: "npm version patch"
+              command: "npm version patch -m '%s: release-title'"
+              variables:
+                release-title: "What's the release title?"
             minor:
-              command: "npm version minor"
+              command: "npm version minor -m '%s: release-title'"
+              variables:
+                release-title: "What's the release title?"
             major:
-              command: "npm version major"
+              command: "npm version major -m '%s: release-title'"
+              variables:
+                release-title: "What's the release title?"
         publish:
           command: "npm publish"
     update-changelog:
