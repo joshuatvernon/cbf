@@ -3,7 +3,7 @@
 #
 # This also shows that you can nest `cbf` scripts
 example:
-  message: "Run alias, deploy, directories, project or setup script"
+  message: "Run alias, deploy, directories, input, project or setup script"
   options:
     alias:
       message: "Running the alias `cbf` example..."
@@ -14,6 +14,9 @@ example:
     directories:
       message: "Running the directories `cbf` example..."
       command: "cbf -r directories.yml"
+    input:
+      message: "Running the input `cbf` example..."
+      command: "cbf -r input.yml"
     project:
       message: "Running the project `cbf` example..."
       command: "cbf -r project.yml"
