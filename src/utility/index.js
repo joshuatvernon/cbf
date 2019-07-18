@@ -168,6 +168,14 @@ const getUndocumentedChoice = (documentedChoice) => {
 };
 
 /**
+ * Returns undocumented choices
+ *
+ * @param string[] documentedChoices     - a list of documented choices to become undocumented
+ * @returns string[] undocumentedChoices - a list of undocumented choices
+ */
+const getUndocumentedChoices = documentedChoices => documentedChoices.map(documentedChoice => getUndocumentedChoice(documentedChoice));
+
+/**
  * Return choices with command directives appended to commands
  *
  * @argument Script script          - script to lookup options and commands
@@ -258,6 +266,7 @@ module.exports = {
   safeExit,
   forceExit,
   isValidArgumentsLength,
+  getUndocumentedChoices,
   getUndocumentedChoice,
   getDocumentedChoices,
   printJson,

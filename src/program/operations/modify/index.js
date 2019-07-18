@@ -23,6 +23,7 @@ const {
   replaceWhitespace,
   isEmptyString,
   safeExit,
+  getUndocumentedChoices,
 } = require('../../../utility');
 const {
   print,
@@ -53,7 +54,8 @@ const addCommandToOptionChoices = ({
     }
     choices.splice(index, 0, answers.name);
   }
-  option.updateChoices(choices);
+  option.updateChoices(getUndocumentedChoices(choices));
+  script.updateOption({ optionKey, option });
 };
 
 const addCommand = ({
@@ -167,7 +169,8 @@ const addNewCommand = ({
       }
       const commandKey = `${optionKey}.${key}`;
       const command = new Command({
-        directive: commandAdder.answers.directive,
+        variables: [],
+        directives: [commandAdder.answers.directive],
         message: commandAdder.answers.message,
       });
       if (script.getCommand(commandKey)) {
@@ -229,10 +232,12 @@ const getScriptModifiedForAdding = (script) => {
 
   Object.keys(copiedScript.getOptions()).forEach((optionKey) => {
     const option = copiedScript.getOption(optionKey);
-    const modifiedMessage = `Add a ${chalk.magenta.bold('command')} to ${chalk.cyan.bold(option.getMessage())}`;
+    const modifiedMessage = `Add a ${chalk.magenta.bold('command')} to ${chalk.cyan.bold(option.getName())}`;
     option.updateMessage(modifiedMessage);
-    option.updateChoices(getOptionChoicesWithoutCommands(copiedScript, optionKey));
-    option.updateChoices(getOptionChoicesWithAddingChoices(copiedScript, optionKey));
+    option.updateChoices(getUndocumentedChoices(getOptionChoicesWithoutCommands(copiedScript, optionKey)));
+    copiedScript.updateOption({ optionKey, option });
+    option.updateChoices(getUndocumentedChoices(getOptionChoicesWithAddingChoices(copiedScript, optionKey)));
+    copiedScript.updateOption({ optionKey, option });
   });
 
   return copiedScript;
