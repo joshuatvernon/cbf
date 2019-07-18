@@ -2,7 +2,13 @@
 
 const cloneDeep = require('lodash/cloneDeep');
 
-const { ADD_COMMAND, DEFAULT_SHELL, Modification } = require('../../constants');
+const {
+  BACK_COMMAND,
+  QUIT_COMMAND,
+  ADD_COMMAND,
+  DEFAULT_SHELL,
+  Modification,
+} = require('../../constants');
 const { CurrentOperatingMode, OperatingMode } = require('../../operating-mode');
 const {
   endsWithWhitespace,
@@ -52,15 +58,14 @@ class Script {
       const subscriber = inquirerPrompts.subscribe(({
         answer,
       }) => {
-        switch (answer) {
-          case 'quit':
+        switch (getUndocumentedChoice(answer)) {
+          case QUIT_COMMAND:
             subscriber.unsubscribe();
             safeExit();
             break;
-          case 'back': {
+          case BACK_COMMAND: {
             key = getParentKey(key);
-            const documented = CurrentOperatingMode.get() === OperatingMode.RUNNING_WITH_DOCUMENTATION;
-            let option = this.getOption(key, documented);
+            let option = this.getOption(key);
             if (!option.getMessage()) {
               // Option didn't have a message; set the default message
               option = Option.copy(option);
@@ -77,19 +82,15 @@ class Script {
             });
             break;
           default:
-            if (CurrentOperatingMode.get() === OperatingMode.RUNNING_WITH_DOCUMENTATION) {
-              // eslint-disable-next-line no-param-reassign
-              answer = getUndocumentedChoice(answer);
-            }
+            // eslint-disable-next-line no-param-reassign
+            answer = getUndocumentedChoice(answer);
             if (endsWithWhitespace(answer)) {
               // eslint-disable-next-line no-param-reassign
               answer = replaceWhitespace(answer, '.');
             }
             key = `${key}.${answer}`;
             if (this.getOption(key)) {
-              const documented = CurrentOperatingMode.get() === OperatingMode.RUNNING_WITH_DOCUMENTATION;
-
-              let option = this.getOption(key, documented);
+              let option = this.getOption(key);
               if (!option.getMessage()) {
                 // Option didn't have a message; set the default message
                 option = Option.copy(option);
@@ -112,8 +113,7 @@ class Script {
       }, () => {});
 
       if (this.getOption(key)) {
-        const documented = CurrentOperatingMode.get() === OperatingMode.RUNNING_WITH_DOCUMENTATION;
-        let option = this.getOption(key, documented);
+        let option = this.getOption(key);
         if (!option.getMessage()) {
           // Option didn't have a message; set the default message
           option = Option.copy(option);
@@ -172,15 +172,20 @@ class Script {
      *
      * @returns a specific option
      */
-  getOption(optionKey, documented) {
+  getOption(optionKey) {
     const option = this.options[optionKey];
-    if (documented) {
+
+    if (option) {
+      // Add documentation to option
       const documentedOption = Option.copy(option);
-      const documentedChoices = getDocumentedChoices(this, optionKey, documentedOption.getChoices());
+      const documented = CurrentOperatingMode.get() === OperatingMode.RUNNING_WITH_DOCUMENTATION;
+      const documentedChoices = getDocumentedChoices(this, optionKey, documentedOption.getChoices(), documented);
       documentedOption.updateChoices(documentedChoices);
+
       return documentedOption;
     }
-    return option;
+
+    return null;
   }
 
   /**

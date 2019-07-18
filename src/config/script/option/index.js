@@ -19,6 +19,9 @@ class Option {
   }
 
   static copy(option) {
+    if (option == null) {
+      throwError('Option.copy expects a Option instance but instead received a undefined value');
+    }
     if (!(option instanceof Option)) {
       throwError(`Option.copy expects a Option instance but instead received a ${(option).constructor.name} instance`);
     }

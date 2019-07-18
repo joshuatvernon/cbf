@@ -5,6 +5,8 @@ const noop = require('lodash/noop');
 const isEmpty = require('lodash/isEmpty');
 
 const {
+  BACK_COMMAND,
+  QUIT_COMMAND,
   ADD_COMMAND,
   Modification,
 } = require('../../../constants');
@@ -44,10 +46,10 @@ const addCommandToOptionChoices = ({
   const choices = option.getChoices();
   if (!choices.includes(answers.name)) {
     let index;
-    if (choices.indexOf('back') > -1) {
-      index = choices.indexOf('back');
+    if (choices.indexOf(BACK_COMMAND) > -1) {
+      index = choices.indexOf(BACK_COMMAND);
     } else {
-      index = choices.indexOf('quit');
+      index = choices.indexOf(QUIT_COMMAND);
     }
     choices.splice(index, 0, answers.name);
   }
@@ -199,10 +201,10 @@ const getOptionChoicesWithAddingChoices = (script, optionKey) => {
   const choices = script.getOption(optionKey).getChoices();
 
   let index;
-  if (choices.indexOf('back') > -1) {
-    index = choices.indexOf('back');
+  if (choices.indexOf(BACK_COMMAND) > -1) {
+    index = choices.indexOf(BACK_COMMAND);
   } else {
-    index = choices.indexOf('quit');
+    index = choices.indexOf(QUIT_COMMAND);
   }
 
   // Append adding commands just before `back` and `quit`

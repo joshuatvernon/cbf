@@ -56,7 +56,7 @@ describe('isValidArgumentsLength()', () => {
 
 describe('getUndocumentedChoice()', () => {
   it('returns the choice without the documentation', () => {
-    const documentedChoice = `commit ${chalk.blue.bold('=>')} git commit -m 'new commit'`;
+    const documentedChoice = `commit ${chalk.blue.bold('→')} git commit -m 'new commit'`;
     const undocumentedChoice = getUndocumentedChoice(documentedChoice);
     expect(undocumentedChoice).to.equal('commit');
   });

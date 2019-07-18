@@ -3,6 +3,10 @@
 const isString = require('lodash/isString');
 
 const {
+  BACK_COMMAND,
+  QUIT_COMMAND,
+} = require('../constants');
+const {
   GlobalConfig,
 } = require('../config');
 const {
@@ -87,11 +91,11 @@ const parseScriptRecurse = (scriptName, ymlFileName, ymlFile, key) => {
     if (key !== scriptName) {
       // If not top level add default back option to every option to be able to second last option
       // to go back
-      choices.push('back');
+      choices.push(BACK_COMMAND);
     }
 
     // add default quit option so as to be able to display last option before quitting
-    choices.push('quit');
+    choices.push(QUIT_COMMAND);
     const option = new Option({
       name: getNameFromKey(key),
       choices,
