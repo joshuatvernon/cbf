@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 const noop = require('lodash/noop');
+const isEmpty = require('lodash/isEmpty');
 
 const {
   GlobalConfig,
@@ -51,10 +52,10 @@ const shouldDeleteScript = (scriptName) => {
 
 const handler = (args) => {
   GlobalConfig.load();
-  if (Object.keys(GlobalConfig.getScripts()).length === 0) {
+  if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
     print(ERROR, 'noSavedScripts');
     safeExit();
-  } else if (args.length === 0) {
+  } else if (isEmpty(args)) {
     const menu = new Menu({
       operationName: operation.name,
       operationRun: operation.run,

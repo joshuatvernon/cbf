@@ -4,7 +4,14 @@ const chalk = require('chalk');
 const yaml = require('yamljs');
 const os = require('os');
 const path = require('path');
+const isString = require('lodash/isString');
+const isPlainObject = require('lodash/isPlainObject');
 
+const {
+  BACK_COMMAND,
+  QUIT_COMMAND,
+  ADD_COMMAND,
+} = require('../constants');
 const {
   print,
   ERROR,
@@ -109,13 +116,9 @@ const loadYmlFile = (ymlFileName) => {
   return ymlFile;
 };
 
-const isString = variable => typeof variable === 'string';
-
-const isObject = variable => typeof variable === 'object';
-
 const valuesInKeyValuePairAreAllStrings = obj => Object.values(obj).every(value => isString(value));
 
-const isValidVariables = variables => isObject(variables) && valuesInKeyValuePairAreAllStrings(variables);
+const isValidVariablesShape = variables => isPlainObject(variables) && valuesInKeyValuePairAreAllStrings(variables);
 
 /**
  * Return the first key in an object
@@ -154,7 +157,23 @@ const getParentKey = key => key.substr(0, key.lastIndexOf('.'));
  *
  * @returns string undocumentedChoice - choice with documented command directive stripped
  */
-const getUndocumentedChoice = documentedChoice => documentedChoice.split(` ${chalk.blue.bold('=>')}`)[0];
+const getUndocumentedChoice = (documentedChoice) => {
+  if (documentedChoice.indexOf(chalk.blue.bold('→')) !== -1) {
+    return documentedChoice.split(` ${chalk.blue.bold('→')}`)[0];
+  }
+  if (documentedChoice.indexOf(chalk.blue.bold('↓')) !== -1) {
+    return documentedChoice.split(` ${chalk.blue.bold('↓')}`)[0];
+  }
+  return documentedChoice;
+};
+
+/**
+ * Returns undocumented choices
+ *
+ * @param string[] documentedChoices     - a list of documented choices to become undocumented
+ * @returns string[] undocumentedChoices - a list of undocumented choices
+ */
+const getUndocumentedChoices = documentedChoices => documentedChoices.map(documentedChoice => getUndocumentedChoice(documentedChoice));
 
 /**
  * Return choices with command directives appended to commands
@@ -162,18 +181,25 @@ const getUndocumentedChoice = documentedChoice => documentedChoice.split(` ${cha
  * @argument Script script          - script to lookup options and commands
  * @argument string optionKey       - key of the option having it's choices documented
  * @argument string choice          - choice to be documented
+ * @argument boolean documented     - is in documented mode
  *
  * @returns string documentedChoice - choice with command directives appended to commands
  */
-const getDocumentedChoice = (script, optionKey, choice) => {
+const getDocumentedChoice = (script, optionKey, choice, documented) => {
   const commandKey = `${optionKey}.${choice}`;
   const command = script.getCommand(commandKey);
-  if (command) {
+  if (documented && command) {
     const directives = command.getDirectives();
     if (directives.length === 1) {
-      return `${choice} ${chalk.blue.bold('=>')} ${chalk.red.bold(directives[0])}`;
+      return `${choice} ${chalk.blue.bold('→')} ${chalk.green.bold(directives[0])}`;
     }
-    return `${choice} ${chalk.blue.bold('=>')} ${chalk.red.bold(directives[0])} . . .`;
+    return `${choice} ${chalk.blue.bold('→')} ${chalk.green.bold(directives[0])} . . .`;
+  }
+  if (choice.indexOf(BACK_COMMAND) !== -1 || choice.indexOf(QUIT_COMMAND) !== -1 || choice.indexOf(ADD_COMMAND) !== -1) {
+    return choice;
+  }
+  if (!command) {
+    return `${choice} ${chalk.blue.bold('↓')}`;
   }
   return choice;
 };
@@ -184,12 +210,13 @@ const getDocumentedChoice = (script, optionKey, choice) => {
  * @argument Script script             - script to lookup options and commands
  * @argument string optionKey          - key of the option having it's choices documented
  * @argument string[] choices          - choices to be documented
+ * @argument boolean documented        - is in documented mode
  *
  * @returns string[] documentedChoices - choices with command directives appended to commands
  */
-const getDocumentedChoices = (script, optionKey, choices) =>
+const getDocumentedChoices = (script, optionKey, choices, documented) =>
   // eslint-disable-next-line implicit-arrow-linebreak
-  choices.map(choice => getDocumentedChoice(script, optionKey, choice));
+  choices.map(choice => getDocumentedChoice(script, optionKey, choice, documented));
 
 /**
  * Returns true if arguments length is valid and false otherwise
@@ -239,6 +266,7 @@ module.exports = {
   safeExit,
   forceExit,
   isValidArgumentsLength,
+  getUndocumentedChoices,
   getUndocumentedChoice,
   getDocumentedChoices,
   printJson,
@@ -251,7 +279,5 @@ module.exports = {
   getNameFromKey,
   getParentKey,
   throwError,
-  isValidVariables,
-  isString,
-  isObject,
+  isValidVariablesShape,
 };

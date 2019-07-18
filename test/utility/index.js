@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const chalk = require('chalk');
 const { expect } = require('chai');
 const { describe, it } = require('mocha');
@@ -13,6 +15,7 @@ const {
   getNameFromKey,
   getParentKey,
   throwError,
+  isValidVariablesShape,
 } = require('../../src/utility');
 
 describe('isValidArgumentsLength()', () => {
@@ -53,7 +56,7 @@ describe('isValidArgumentsLength()', () => {
 
 describe('getUndocumentedChoice()', () => {
   it('returns the choice without the documentation', () => {
-    const documentedChoice = `commit ${chalk.blue.bold('=>')} git commit -m 'new commit'`;
+    const documentedChoice = `commit ${chalk.blue.bold('→')} git commit -m 'new commit'`;
     const undocumentedChoice = getUndocumentedChoice(documentedChoice);
     expect(undocumentedChoice).to.equal('commit');
   });
@@ -145,5 +148,50 @@ describe('throwError()', () => {
   it('should throw an error with the correct error message', () => {
     const errorMessage = 'An error';
     expect(() => { throwError(errorMessage); }).to.throw(errorMessage);
+  });
+});
+
+describe('isValidVariablesShape()', () => {
+  it('should return true if variables is an object and all entries have string values', () => {
+    const variables = {
+      name: 'What is your name?',
+      food: 'What is your favourite food?',
+    };
+    expect(isValidVariablesShape(variables)).to.equal(true);
+  });
+
+  it('should return false if variables is a string', () => {
+    const variables = 'some string';
+    expect(isValidVariablesShape(variables)).to.equal(false);
+  });
+
+  it('should return false if variables is a number', () => {
+    const variables = 4;
+    expect(isValidVariablesShape(variables)).to.equal(false);
+  });
+
+  it('should return false if variables is an array', () => {
+    const variables = ['one', 'two', 'three'];
+    expect(isValidVariablesShape(variables)).to.equal(false);
+  });
+
+
+  it('should return false if variables is a function', () => {
+    const variables = () => {
+      const a = 'a';
+      return a;
+    };
+    expect(isValidVariablesShape(variables)).to.equal(false);
+  });
+
+  it('should return false if an object but entries have NON string values', () => {
+    const variables = {
+      name: 'What is your name?',
+      foods: {
+        first: 'What is your favourite food?',
+        second: 'What is your second favourite food?',
+      },
+    };
+    expect(isValidVariablesShape(variables)).to.equal(false);
   });
 });

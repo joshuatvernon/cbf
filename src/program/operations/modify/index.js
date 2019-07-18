@@ -2,8 +2,11 @@
 
 const chalk = require('chalk');
 const noop = require('lodash/noop');
+const isEmpty = require('lodash/isEmpty');
 
 const {
+  BACK_COMMAND,
+  QUIT_COMMAND,
   ADD_COMMAND,
   Modification,
 } = require('../../../constants');
@@ -20,6 +23,7 @@ const {
   replaceWhitespace,
   isEmptyString,
   safeExit,
+  getUndocumentedChoices,
 } = require('../../../utility');
 const {
   print,
@@ -43,14 +47,15 @@ const addCommandToOptionChoices = ({
   const choices = option.getChoices();
   if (!choices.includes(answers.name)) {
     let index;
-    if (choices.indexOf('back') > -1) {
-      index = choices.indexOf('back');
+    if (choices.indexOf(BACK_COMMAND) > -1) {
+      index = choices.indexOf(BACK_COMMAND);
     } else {
-      index = choices.indexOf('quit');
+      index = choices.indexOf(QUIT_COMMAND);
     }
     choices.splice(index, 0, answers.name);
   }
-  option.updateChoices(choices);
+  option.updateChoices(getUndocumentedChoices(choices));
+  script.updateOption({ optionKey, option });
 };
 
 const addCommand = ({
@@ -164,7 +169,8 @@ const addNewCommand = ({
       }
       const commandKey = `${optionKey}.${key}`;
       const command = new Command({
-        directive: commandAdder.answers.directive,
+        variables: [],
+        directives: [commandAdder.answers.directive],
         message: commandAdder.answers.message,
       });
       if (script.getCommand(commandKey)) {
@@ -198,10 +204,10 @@ const getOptionChoicesWithAddingChoices = (script, optionKey) => {
   const choices = script.getOption(optionKey).getChoices();
 
   let index;
-  if (choices.indexOf('back') > -1) {
-    index = choices.indexOf('back');
+  if (choices.indexOf(BACK_COMMAND) > -1) {
+    index = choices.indexOf(BACK_COMMAND);
   } else {
-    index = choices.indexOf('quit');
+    index = choices.indexOf(QUIT_COMMAND);
   }
 
   // Append adding commands just before `back` and `quit`
@@ -226,10 +232,12 @@ const getScriptModifiedForAdding = (script) => {
 
   Object.keys(copiedScript.getOptions()).forEach((optionKey) => {
     const option = copiedScript.getOption(optionKey);
-    const modifiedMessage = `Add a ${chalk.magenta.bold('command')} to ${chalk.cyan.bold(option.getMessage())}`;
+    const modifiedMessage = `Add a ${chalk.magenta.bold('command')} to ${chalk.cyan.bold(option.getName())}`;
     option.updateMessage(modifiedMessage);
-    option.updateChoices(getOptionChoicesWithoutCommands(copiedScript, optionKey));
-    option.updateChoices(getOptionChoicesWithAddingChoices(copiedScript, optionKey));
+    option.updateChoices(getUndocumentedChoices(getOptionChoicesWithoutCommands(copiedScript, optionKey)));
+    copiedScript.updateOption({ optionKey, option });
+    option.updateChoices(getUndocumentedChoices(getOptionChoicesWithAddingChoices(copiedScript, optionKey)));
+    copiedScript.updateOption({ optionKey, option });
   });
 
   return copiedScript;
@@ -237,10 +245,10 @@ const getScriptModifiedForAdding = (script) => {
 
 const handler = (args) => {
   GlobalConfig.load();
-  if (Object.keys(GlobalConfig.getScripts()).length === 0) {
+  if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
     print(ERROR, 'noSavedScripts');
     safeExit();
-  } else if (args.length === 0) {
+  } else if (isEmpty(args)) {
     const menu = new Menu({
       operationName: operation.name,
       operationRun: operation.run,

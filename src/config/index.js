@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const fse = require('fs-extra');
-const lodash = require('lodash');
+const cloneDeep = require('lodash/cloneDeep');
 
 const {
   CONFIG_FILE_PATH,
@@ -31,7 +31,7 @@ class Config {
     if (!(config instanceof Config)) {
       throwError(`Config.copy expects a Config instance but instead recieved a ${(config).constructor.name} instance`);
     }
-    return lodash.cloneDeep(config);
+    return cloneDeep(config);
   }
 
   /**

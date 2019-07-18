@@ -4,7 +4,7 @@ const {
   spawn,
 } = require('child_process');
 const fse = require('fs-extra');
-const lodash = require('lodash');
+const cloneDeep = require('lodash/cloneDeep');
 const noop = require('lodash/noop');
 
 const {
@@ -47,7 +47,7 @@ class Command {
     if (!(command instanceof Command)) {
       throwError(`Command.copy expects a Command instance but instead received a ${(command).constructor.name} instance`);
     }
-    return lodash.cloneDeep(command);
+    return cloneDeep(command);
   }
 
   /**
