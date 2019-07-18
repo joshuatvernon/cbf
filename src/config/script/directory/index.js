@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const lodash = require('lodash');
+const cloneDeep = require('lodash/cloneDeep');
 
 const { throwError } = require('../../../utility');
 
@@ -13,7 +13,7 @@ class Directory {
     if (!(directory instanceof Directory)) {
       throwError(`Directory.copy expects a Directory instance but instead recieved a ${(directory).constructor.name} instance`);
     }
-    return lodash.cloneDeep(directory);
+    return cloneDeep(directory);
   }
 
   /**

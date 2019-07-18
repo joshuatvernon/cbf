@@ -4,6 +4,8 @@ const chalk = require('chalk');
 const yaml = require('yamljs');
 const os = require('os');
 const path = require('path');
+const isString = require('lodash/isString');
+const isPlainObject = require('lodash/isPlainObject');
 
 const {
   print,
@@ -109,13 +111,9 @@ const loadYmlFile = (ymlFileName) => {
   return ymlFile;
 };
 
-const isString = variable => typeof variable === 'string';
-
-const isObject = variable => typeof variable === 'object';
-
 const valuesInKeyValuePairAreAllStrings = obj => Object.values(obj).every(value => isString(value));
 
-const isValidVariables = variables => isObject(variables) && valuesInKeyValuePairAreAllStrings(variables);
+const isValidVariablesShape = variables => isPlainObject(variables) && valuesInKeyValuePairAreAllStrings(variables);
 
 /**
  * Return the first key in an object
@@ -251,7 +249,5 @@ module.exports = {
   getNameFromKey,
   getParentKey,
   throwError,
-  isValidVariables,
-  isString,
-  isObject,
+  isValidVariablesShape,
 };

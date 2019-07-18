@@ -1,7 +1,9 @@
 #!/usr/bin/env node
 
-const changeCase = require('change-case');
 const fse = require('fs-extra');
+const isEmpty = require('lodash/isEmpty');
+const camelCase = require('lodash/camelCase');
+const lowerCase = require('lodash/lowerCase');
 
 const version = require('../../version');
 const {
@@ -60,7 +62,7 @@ const getOperationsFromCommander = () => {
   const operations = [];
   Object.keys(OperationTypes).forEach((operationType) => {
     const operation = Operations.get(OperationTypes[operationType]);
-    if (changeCase.camelCase(operation.name) in commander) {
+    if (camelCase(operation.name) in commander) {
       operations.push(operation);
     }
   });
@@ -75,7 +77,7 @@ const loadLocalCbfFile = () => {
 
 const runMenuOrHelp = () => {
   GlobalConfig.load();
-  if (Object.keys(GlobalConfig.getScripts()).length === 0) {
+  if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
     commander.help();
   } else {
     const runOperation = Operations.get(OperationTypes.RUN);
@@ -98,7 +100,7 @@ const handleNoOperations = () => {
 const handleArguments = () => {
   const operations = getOperationsFromCommander();
 
-  if (operations.length === 0) {
+  if (isEmpty(operations)) {
     handleNoOperations();
   } else {
     if (hasMutuallyExclusiveOperations(operations)) {
@@ -114,7 +116,7 @@ const handleArguments = () => {
 
     operations.forEach(operation => operation.run(args));
 
-    if (nonDocumentedOperations.length === 0) {
+    if (isEmpty(nonDocumentedOperations)) {
       handleNoOperations();
     }
   }
@@ -126,7 +128,7 @@ const addOperationsToCommander = () => {
   Object.keys(OperationTypes).forEach((operationType) => {
     const operation = Operations.get(OperationTypes[operationType]);
     const details = `-${operation.flag}, --${operation.name} ${formatArguments(operation.args)}`;
-    const description = `${operation.description.toLowerCase()}`;
+    const description = `${lowerCase(operation.description)}`;
     commander.option(details, description);
   });
 };

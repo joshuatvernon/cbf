@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const isString = require('lodash/isString');
+
 const {
   GlobalConfig,
 } = require('../config');
@@ -14,9 +16,8 @@ const {
   getNameFromKey,
   isValidYamlFileName,
   loadYmlFile,
-  isValidVariables,
+  isValidVariablesShape,
   forceExit,
-  isString,
 } = require('../utility');
 const {
   print,
@@ -62,7 +63,7 @@ const parseScriptRecurse = (scriptName, ymlFileName, ymlFile, key) => {
     }
 
     if ('variables' in ymlFile) {
-      if (isValidVariables(ymlFile.variables)) {
+      if (isValidVariablesShape(ymlFile.variables)) {
         command.updateVariables(ymlFile.variables);
       } else {
         print(ERROR, 'errorParsingYmlFile', ymlFileName, 'Variables are not in the correct format');

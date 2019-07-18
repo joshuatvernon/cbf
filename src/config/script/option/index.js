@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const lodash = require('lodash');
+const cloneDeep = require('lodash/cloneDeep');
 
 const { throwError } = require('../../../utility');
 
@@ -22,7 +22,7 @@ class Option {
     if (!(option instanceof Option)) {
       throwError(`Option.copy expects a Option instance but instead received a ${(option).constructor.name} instance`);
     }
-    return lodash.cloneDeep(option);
+    return cloneDeep(option);
   }
 
   /**

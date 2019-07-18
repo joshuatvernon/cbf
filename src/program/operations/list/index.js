@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const isEmpty = require('lodash/isEmpty');
+
 const {
   GlobalConfig,
 } = require('../../../config');
@@ -15,7 +17,7 @@ const Operation = require('../operation');
 
 const handler = () => {
   GlobalConfig.load();
-  if (Object.keys(GlobalConfig.getScripts()).length === 0) {
+  if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
     print(ERROR, 'noSavedScripts');
   } else {
     // print out script names and paths

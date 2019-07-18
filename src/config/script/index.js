@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const lodash = require('lodash');
+const cloneDeep = require('lodash/cloneDeep');
 
 const { ADD_COMMAND, DEFAULT_SHELL, Modification } = require('../../constants');
 const { CurrentOperatingMode, OperatingMode } = require('../../operating-mode');
@@ -12,6 +12,7 @@ const {
   getUndocumentedChoice,
   getDocumentedChoices,
   safeExit,
+  isEmptyString,
 } = require('../../utility');
 const {
   prompts,
@@ -38,7 +39,7 @@ class Script {
     if (!(script instanceof Script)) {
       throwError(`Script.copy expects a Script instance but instead recieved a ${(script).constructor.name} instance`);
     }
-    return lodash.cloneDeep(script);
+    return cloneDeep(script);
   }
 
   /**
@@ -310,7 +311,7 @@ class Script {
      * directory to run the command in
      */
   getDirectoryOrClosestParentDirectory(directoryKey) {
-    if (directoryKey === '') {
+    if (isEmptyString(directoryKey)) {
       return '';
     }
 

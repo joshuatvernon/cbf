@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+const isEmpty = require('lodash/isEmpty');
+
 const {
   GlobalConfig,
 } = require('../../../config');
@@ -23,15 +25,15 @@ const loadAndRunCbfFile = (ymlFilename) => {
 
 const handler = (args) => {
   GlobalConfig.load();
-  if (Object.keys(GlobalConfig.getScripts()).length === 0) {
-    if (args.length === 0) {
+  if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
+    if (isEmpty(args)) {
       print(ERROR, 'noSavedScripts');
       safeExit();
     } else {
       const ymlFilename = args[0];
       loadAndRunCbfFile(ymlFilename);
     }
-  } else if (args.length === 0) {
+  } else if (isEmpty(args)) {
     const menu = new Menu({
       operationName: operation.name,
       operationRun: operation.run,
