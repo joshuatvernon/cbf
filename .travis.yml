@@ -4,8 +4,6 @@ script:
   - npm run lint
   - npm run test
 
-before_deploy: "npm run version"
-
 deploy:
   provider: npm
   email: joshuatvernon@gmail.com
