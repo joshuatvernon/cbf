@@ -24,8 +24,9 @@ __CBF__ scripts are easy to build and follow simple rules:
 1. The first tag is required and is the scripts name
 2. `options` tags are used to store lists of more `options` or `command`'s
 3. `command` tags are used to store one or many strings containing shell commands
-4. `message` tags are used to store messages that are printed to stdout when an option or command is selected
-5. `directory` tags are used to set where a command should be ran. When a command is ran, __CBF__ recursively searches for the commands set directory or closest set parent `directory` tag
+4. `variables` tags are used to prompt the user for variables to be replaced in a command 
+5. `message` tags are used to store messages that are printed to stdout when an option or command is selected
+6. `directory` tags are used to set where a command should be ran. When a command is ran, __CBF__ recursively searches for the commands set directory or closest set parent `directory` tag
 
 ### Example Script
 

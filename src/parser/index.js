@@ -14,6 +14,9 @@ const {
   getNameFromKey,
   isValidYamlFileName,
   loadYmlFile,
+  isValidVariables,
+  forceExit,
+  isString,
 } = require('../utility');
 const {
   print,
@@ -24,11 +27,12 @@ const {
 /**
  * Helper to recursively parse script
  *
- * @argument Script scriptName - name of the new script
- * @argument Object ymlFile    - the script converted from the yml file
- * @argument string key        - current ymlFile key to be parsed
+ * @argument Script scriptName  - name of the new script
+ * @argument Script ymlFileName - name of the yml file
+ * @argument Object ymlFile     - the script converted from the yml file
+ * @argument string key         - current ymlFile key to be parsed
  */
-const parseScriptRecurse = (scriptName, ymlFile, key) => {
+const parseScriptRecurse = (scriptName, ymlFileName, ymlFile, key) => {
   if ('directory' in ymlFile) {
     const directory = new Directory(ymlFile.directory);
     GlobalConfig.getScript(scriptName).updateDirectory({
@@ -36,9 +40,10 @@ const parseScriptRecurse = (scriptName, ymlFile, key) => {
       directory,
     });
   }
+
   if ('command' in ymlFile) {
     const directives = [];
-    if (typeof ymlFile.command === 'string') {
+    if (isString(ymlFile.command)) {
       directives.push(ymlFile.command);
     } else {
       let line = 1;
@@ -56,6 +61,15 @@ const parseScriptRecurse = (scriptName, ymlFile, key) => {
       command.updateMessage(ymlFile.message);
     }
 
+    if ('variables' in ymlFile) {
+      if (isValidVariables(ymlFile.variables)) {
+        command.updateVariables(ymlFile.variables);
+      } else {
+        print(ERROR, 'errorParsingYmlFile', ymlFileName, 'Variables are not in the correct format');
+        forceExit();
+      }
+    }
+
     GlobalConfig.getScript(scriptName).updateCommand({
       commandKey: key,
       command,
@@ -65,7 +79,7 @@ const parseScriptRecurse = (scriptName, ymlFile, key) => {
     const choices = [];
 
     optionsKeys.forEach((optionsKey) => {
-      parseScriptRecurse(scriptName, ymlFile.options[optionsKey], `${key}.${optionsKey}`);
+      parseScriptRecurse(scriptName, ymlFileName, ymlFile.options[optionsKey], `${key}.${optionsKey}`);
       choices.push(optionsKey);
     });
 
@@ -105,7 +119,7 @@ class Parser {
         name: getFirstKey(ymlFile),
       });
       GlobalConfig.addScript(script);
-      parseScriptRecurse(script.getName(), ymlFile[script.getName()], script.getName());
+      parseScriptRecurse(script.getName(), ymlFileName, ymlFile[script.getName()], script.getName());
       print(MESSAGE, 'loadedScript', script.getName(), ymlFileName);
       script.run();
     } else if (ymlFileName === true) {
@@ -130,7 +144,7 @@ class Parser {
       GlobalConfig.load();
       if (!GlobalConfig.getScript(script.getName())) {
         GlobalConfig.addScript(script);
-        parseScriptRecurse(script.getName(), ymlFile[script.getName()], script.getName());
+        parseScriptRecurse(script.getName(), ymlFileName, ymlFile[script.getName()], script.getName());
         GlobalConfig.save();
         print(MESSAGE, 'savedScript', script.getName());
       } else {
@@ -158,7 +172,7 @@ class Parser {
       GlobalConfig.load();
       if (GlobalConfig.getScript(script.getName())) {
         GlobalConfig.updateScript(script);
-        parseScriptRecurse(script.getName(), ymlFile[script.getName()], script.getName());
+        parseScriptRecurse(script.getName(), ymlFileName, ymlFile[script.getName()], script.getName());
         GlobalConfig.save();
 
         print(MESSAGE, 'updatedScript', script.getName());

@@ -109,6 +109,13 @@ const loadYmlFile = (ymlFileName) => {
   return ymlFile;
 };
 
+const isString = variable => typeof variable === 'string';
+
+const isObject = variable => typeof variable === 'object';
+
+const valuesInKeyValuePairAreAllStrings = obj => Object.values(obj).every(value => isString(value));
+
+const isValidVariables = variables => isObject(variables) && valuesInKeyValuePairAreAllStrings(variables);
 
 /**
  * Return the first key in an object
@@ -244,4 +251,7 @@ module.exports = {
   getNameFromKey,
   getParentKey,
   throwError,
+  isValidVariables,
+  isString,
+  isObject,
 };

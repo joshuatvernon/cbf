@@ -146,8 +146,12 @@ const lookupErrorMessage = (errorMessageKey, ...args) => {
   let errorMessage;
   switch (errorMessageKey) {
     case 'errorLoadingYmlFile':
-      // args[0] = yml file name
+      // args[0] = yml file name, args[1] = error message
       errorMessage = `Error loading ${chalk.cyan.bold(args[0])} file\n\n${chalk.red.bold(args[1])}`;
+      break;
+    case 'errorParsingYmlFile':
+      // args[0] = yml file name, args[1] = error message
+      errorMessage = `Error parsing ${chalk.cyan.bold(args[0])} file\n\n${chalk.red.bold(args[1])}`;
       break;
     case 'invalidFlags': {
       // ...args = invalid flags
