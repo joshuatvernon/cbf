@@ -15,6 +15,10 @@ Developers build scripts that can either be saved directly to __CBF__ or loaded 
 ```sh
 npm i cbf -g
 ```
+or
+```sh
+yarn global add cbf
+```
 
 ### Scripts
 
