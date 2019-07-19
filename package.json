@@ -13,7 +13,9 @@
     "update-latest-tag": "git tag -f \"$(npm run --silent latest-tag)\" \"$(npm run --silent latest-tag)\"^{} -a -m \"$(npm run --silent build-annotated-tag)\"",
     "preversion": "npm run --silent lint && npm run --silent test",
     "version": "genversion --semi version.js && git add version.js",
-    "postversion": "npm run --silent update-latest-tag && git push && git push --follow-tags"
+    "postversion": "npm run --silent update-latest-tag && git push && git push --follow-tags",
+    "current-version": "echo $npm_package_version",
+    "latest-published-version": "npm view cbf version"
   },
   "author": "Joshua Vernon",
   "engines": {
