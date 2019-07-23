@@ -4,6 +4,7 @@
   "description": "A package for creating scripts to store and run your most commonly used CLI commands for a repo or just in general",
   "main": "index.js",
   "scripts": {
+    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
     "lint": "eslint \"./**/*.js\"",
     "test": "mocha --recursive --exit",
     "latest-tag": "echo $(git describe --tags --abbrev=0)",
@@ -57,7 +58,10 @@
     "eslint-config-airbnb-base": "^13.1.0",
     "eslint-plugin-import": "^2.18.0",
     "genversion": "^2.1.1",
-    "mocha": "^6.1.4"
+    "mocha": "^6.1.4",
+    "prettier": "1.18.2",
+    "eslint-config-prettier": "^6.0.0",
+    "eslint-plugin-prettier": "^3.1.0"
   },
   "publishConfig": {
     "access": "public"
