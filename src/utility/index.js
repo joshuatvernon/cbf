@@ -1,24 +1,40 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk');
-const yaml = require('yamljs');
 const os = require('os');
 const path = require('path');
+
+const chalk = require('chalk');
+const yaml = require('yamljs');
 const isString = require('lodash/isString');
 const isPlainObject = require('lodash/isPlainObject');
 
-const {
-  BACK_COMMAND,
-  QUIT_COMMAND,
-  ADD_COMMAND,
-} = require('../constants');
-const {
-  print,
-  ERROR,
-} = require('../messages');
-const {
-  prompts,
-} = require('../shims/inquirer');
+const { BACK_COMMAND, QUIT_COMMAND, ADD_COMMAND } = require('../constants');
+const { printMessage, formatMessage } = require('../messages');
+const { prompts } = require('../shims/inquirer');
+
+const messages = require('./messages');
+
+/**
+ * Listens for uncaught exceptions and prints the error to the console and exits
+ */
+const uncaughtExceptionListener = () => {
+  process.on('uncaughtException', error => {
+    // eslint-disable-next-line no-console
+    console.error('Uncaught Exception thrown\n', error);
+    process.exit(1);
+  });
+};
+
+/**
+ * Listens for unhandled rejections and prints the error to the console and exits
+ */
+const unhandledRejectionListener = () => {
+  process.on('unhandledRejection', (reason, p) => {
+    // eslint-disable-next-line no-console
+    console.error('Unhandled Rejection at promise\n', p, reason);
+    process.exit(1);
+  });
+};
 
 /**
  * Cleans up and then exits program
@@ -70,15 +86,6 @@ const replaceWhitespace = (string, delimiter) => {
 };
 
 /**
- * Returns true if string is empty and false otherwise
- *
- * @argument string string        - string to check if empty string
- *
- * @returns boolean isEmptyString - true if string was empty string and false otherwise
- */
-const isEmptyString = string => string === '';
-
-/**
  * Print json for debugging
  *
  * @argument Object obj object to be printed as coloured JSON
@@ -105,12 +112,17 @@ const isValidYamlFileName = fileName => /.*\.yml/.test(fileName);
  *
  * @returns {Object} ymlFile      - yml file
  */
-const loadYmlFile = (ymlFileName) => {
+const loadYmlFile = ymlFileName => {
   let ymlFile;
   try {
     ymlFile = yaml.load(ymlFileName);
   } catch (exception) {
-    print(ERROR, 'errorLoadingYmlFile', ymlFileName, exception.message);
+    printMessage(
+      formatMessage(messages.errorLoadingYmlFile, {
+        ymlFileName,
+        exception,
+      }),
+    );
     forceExit();
   }
   return ymlFile;
@@ -118,7 +130,8 @@ const loadYmlFile = (ymlFileName) => {
 
 const valuesInKeyValuePairAreAllStrings = obj => Object.values(obj).every(value => isString(value));
 
-const isValidVariablesShape = variables => isPlainObject(variables) && valuesInKeyValuePairAreAllStrings(variables);
+const isValidVariablesShape = variables =>
+  isPlainObject(variables) && valuesInKeyValuePairAreAllStrings(variables);
 
 /**
  * Return the first key in an object
@@ -127,7 +140,7 @@ const isValidVariablesShape = variables => isPlainObject(variables) && valuesInK
  *
  * @returns string firstKey - the first key encountered
  */
-const getFirstKey = (object) => {
+const getFirstKey = object => {
   const keys = Object.keys(object);
   return keys[0] ? keys[0] : null;
 };
@@ -157,7 +170,7 @@ const getParentKey = key => key.substr(0, key.lastIndexOf('.'));
  *
  * @returns string undocumentedChoice - choice with documented command directive stripped
  */
-const getUndocumentedChoice = (documentedChoice) => {
+const getUndocumentedChoice = documentedChoice => {
   if (documentedChoice.indexOf(chalk.blue.bold('→')) !== -1) {
     return documentedChoice.split(` ${chalk.blue.bold('→')}`)[0];
   }
@@ -173,7 +186,8 @@ const getUndocumentedChoice = (documentedChoice) => {
  * @param string[] documentedChoices     - a list of documented choices to become undocumented
  * @returns string[] undocumentedChoices - a list of undocumented choices
  */
-const getUndocumentedChoices = documentedChoices => documentedChoices.map(documentedChoice => getUndocumentedChoice(documentedChoice));
+const getUndocumentedChoices = documentedChoices =>
+  documentedChoices.map(documentedChoice => getUndocumentedChoice(documentedChoice));
 
 /**
  * Return choices with command directives appended to commands
@@ -195,7 +209,11 @@ const getDocumentedChoice = (script, optionKey, choice, documented) => {
     }
     return `${choice} ${chalk.blue.bold('→')} ${chalk.green.bold(directives[0])} . . .`;
   }
-  if (choice.indexOf(BACK_COMMAND) !== -1 || choice.indexOf(QUIT_COMMAND) !== -1 || choice.indexOf(ADD_COMMAND) !== -1) {
+  if (
+    choice.indexOf(BACK_COMMAND) !== -1 ||
+    choice.indexOf(QUIT_COMMAND) !== -1 ||
+    choice.indexOf(ADD_COMMAND) !== -1
+  ) {
     return choice;
   }
   if (!command) {
@@ -228,12 +246,7 @@ const getDocumentedChoices = (script, optionKey, choices, documented) =>
  *
  * @returns boolean validLength - true if argument length is valid; false otherwise
  */
-const isValidArgumentsLength = ({
-  actual,
-  min,
-  max,
-  exact,
-}) => {
+const isValidArgumentsLength = ({ actual, min, max, exact }) => {
   let validLength = true;
   if (typeof exact !== 'undefined' && exact !== actual) {
     validLength = false;
@@ -254,7 +267,7 @@ const isValidArgumentsLength = ({
  *
  * @returns string absolutePath  - an absolute path converted from the relative path
  */
-const absolutePath = (relativePath) => {
+const absolutePath = relativePath => {
   if (relativePath[0] === '~') {
     return path.resolve(path.join(os.homedir(), relativePath.slice(1)));
   }
@@ -262,6 +275,8 @@ const absolutePath = (relativePath) => {
 };
 
 module.exports = {
+  uncaughtExceptionListener,
+  unhandledRejectionListener,
   absolutePath,
   safeExit,
   forceExit,
@@ -272,7 +287,6 @@ module.exports = {
   printJson,
   endsWithWhitespace,
   replaceWhitespace,
-  isEmptyString,
   isValidYamlFileName,
   loadYmlFile,
   getFirstKey,

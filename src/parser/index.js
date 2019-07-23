@@ -1,20 +1,12 @@
 #!/usr/bin/env node
 
+const path = require('path');
+
 const isString = require('lodash/isString');
 
-const {
-  BACK_COMMAND,
-  QUIT_COMMAND,
-} = require('../constants');
-const {
-  GlobalConfig,
-} = require('../config');
-const {
-  Script,
-  Option,
-  Command,
-  Directory,
-} = require('../config/script');
+const { BACK_COMMAND, QUIT_COMMAND } = require('../constants');
+const { GlobalConfig } = require('../config');
+const { Script, Option, Command, Directory } = require('../config/script');
 const {
   getFirstKey,
   getNameFromKey,
@@ -22,12 +14,11 @@ const {
   loadYmlFile,
   isValidVariablesShape,
   forceExit,
+  safeExit,
 } = require('../utility');
-const {
-  print,
-  MESSAGE,
-  ERROR,
-} = require('../messages');
+const { printMessage, formatMessage } = require('../messages');
+
+const messages = require('./messages');
 
 /**
  * Helper to recursively parse script
@@ -70,7 +61,12 @@ const parseScriptRecurse = (scriptName, ymlFileName, ymlFile, key) => {
       if (isValidVariablesShape(ymlFile.variables)) {
         command.updateVariables(ymlFile.variables);
       } else {
-        print(ERROR, 'errorParsingYmlFile', ymlFileName, 'Variables are not in the correct format');
+        printMessage(
+          formatMessage(messages.errorParsingYmlFile, {
+            ymlFileName,
+            error: 'Variables are not in the correct format',
+          }),
+        );
         forceExit();
       }
     }
@@ -83,8 +79,13 @@ const parseScriptRecurse = (scriptName, ymlFileName, ymlFile, key) => {
     const optionsKeys = Object.keys(ymlFile.options);
     const choices = [];
 
-    optionsKeys.forEach((optionsKey) => {
-      parseScriptRecurse(scriptName, ymlFileName, ymlFile.options[optionsKey], `${key}.${optionsKey}`);
+    optionsKeys.forEach(optionsKey => {
+      parseScriptRecurse(
+        scriptName,
+        ymlFileName,
+        ymlFile.options[optionsKey],
+        `${key}.${optionsKey}`,
+      );
       choices.push(optionsKey);
     });
 
@@ -112,11 +113,11 @@ const parseScriptRecurse = (scriptName, ymlFileName, ymlFile, key) => {
 
 class Parser {
   /**
-     * Parse a yml file into commands, options, messages and directories but only
-     * store them as a script in the config in memory
-     *
-     * @argument Object ymlFileName - the name of the yml file to be loaded and parsed
-     */
+   * Parse a yml file into commands, options, messages and directories but only
+   * store them as a script in the config in memory
+   *
+   * @argument Object ymlFileName - the name of the yml file to be loaded and parsed
+   */
   static runScript(ymlFileName) {
     if (isValidYamlFileName(ymlFileName)) {
       const ymlFile = loadYmlFile(ymlFileName);
@@ -124,22 +125,34 @@ class Parser {
         name: getFirstKey(ymlFile),
       });
       GlobalConfig.addScript(script);
-      parseScriptRecurse(script.getName(), ymlFileName, ymlFile[script.getName()], script.getName());
-      print(MESSAGE, 'loadedScript', script.getName(), ymlFileName);
+      parseScriptRecurse(
+        script.getName(),
+        ymlFileName,
+        ymlFile[script.getName()],
+        script.getName(),
+      );
+      printMessage(
+        formatMessage(messages.loadedScript, {
+          scriptName: script.getName(),
+          ymlFileName: path.basename(ymlFileName),
+        }),
+      );
       script.run();
     } else if (ymlFileName === true) {
-      print(ERROR, 'noYmlFile');
+      printMessage(formatMessage(messages.noYmlFile));
+      safeExit();
     } else {
-      print(ERROR, 'invalidYmlFile', ymlFileName);
+      printMessage(formatMessage(messages.invalidYmlFile, { ymlFileName }));
+      safeExit();
     }
   }
 
   /**
-     * Parse a yml file into commands, options, messages and directories and store
-     * them as a script in the config
-     *
-     * @argument Object ymlFileName - the name of the yml file to be loaded and parsed
-     */
+   * Parse a yml file into commands, options, messages and directories and store
+   * them as a script in the config
+   *
+   * @argument Object ymlFileName - the name of the yml file to be loaded and parsed
+   */
   static saveScript(ymlFileName) {
     if (isValidYamlFileName(ymlFileName)) {
       const ymlFile = loadYmlFile(ymlFileName);
@@ -149,25 +162,34 @@ class Parser {
       GlobalConfig.load();
       if (!GlobalConfig.getScript(script.getName())) {
         GlobalConfig.addScript(script);
-        parseScriptRecurse(script.getName(), ymlFileName, ymlFile[script.getName()], script.getName());
+        parseScriptRecurse(
+          script.getName(),
+          ymlFileName,
+          ymlFile[script.getName()],
+          script.getName(),
+        );
         GlobalConfig.save();
-        print(MESSAGE, 'savedScript', script.getName());
+        printMessage(formatMessage(messages.savedScript, { scriptName: script.getName() }));
       } else {
-        print(MESSAGE, 'duplicateScript', script.getName(), ymlFileName);
+        printMessage(
+          formatMessage(messages.duplicateScript, { scriptName: script.getName(), ymlFileName }),
+        );
       }
     } else if (ymlFileName === true) {
-      print(ERROR, 'noYmlFile');
+      printMessage(formatMessage(messages.noYmlFile));
+      safeExit();
     } else {
-      print(ERROR, 'invalidYmlFile', ymlFileName);
+      printMessage(formatMessage(messages.invalidYmlFile, { ymlFileName }));
+      safeExit();
     }
   }
 
   /**
-     * Parse a yml file into commands, options, messages and directories and replace
-     * them as the commands, options, messages and directories for the script in the config
-     *
-     * @argument Object ymlFileName - the name of the yml file to be loaded and parsed
-     */
+   * Parse a yml file into commands, options, messages and directories and replace
+   * them as the commands, options, messages and directories for the script in the config
+   *
+   * @argument Object ymlFileName - the name of the yml file to be loaded and parsed
+   */
   static updateScript(ymlFileName) {
     if (isValidYamlFileName(ymlFileName)) {
       const ymlFile = loadYmlFile(ymlFileName);
@@ -177,17 +199,26 @@ class Parser {
       GlobalConfig.load();
       if (GlobalConfig.getScript(script.getName())) {
         GlobalConfig.updateScript(script);
-        parseScriptRecurse(script.getName(), ymlFileName, ymlFile[script.getName()], script.getName());
+        parseScriptRecurse(
+          script.getName(),
+          ymlFileName,
+          ymlFile[script.getName()],
+          script.getName(),
+        );
         GlobalConfig.save();
 
-        print(MESSAGE, 'updatedScript', script.getName());
+        printMessage(formatMessage(messages.updatedScript, { scriptName: script.getName() }));
       } else {
-        print(ERROR, 'scriptNotUpdated', script.getName(), ymlFileName);
+        printMessage(
+          formatMessage(messages.scriptNotUpdated, { scriptName: script.getName(), ymlFileName }),
+        );
       }
     } else if (ymlFileName === true) {
-      print(ERROR, 'noYmlFile');
+      printMessage(formatMessage(messages.noYmlFile));
+      safeExit();
     } else {
-      print(ERROR, 'invalidYmlFile', ymlFileName);
+      printMessage(formatMessage(messages.invalidYmlFile, { ymlFileName }));
+      safeExit();
     }
   }
 }

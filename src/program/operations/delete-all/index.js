@@ -2,48 +2,41 @@
 
 const noop = require('lodash/noop');
 
-const {
-  GlobalConfig,
-} = require('../../../config');
-const {
-  print,
-  Message,
-  MESSAGE,
-} = require('../../../messages');
-const {
-  prompts,
-  inquirerPrompts,
-} = require('../../../shims/inquirer');
-const {
-  safeExit,
-} = require('../../../utility');
+const { GlobalConfig } = require('../../../config');
+const { printMessage, formatMessage } = require('../../../messages');
+const { prompts, inquirerPrompts } = require('../../../shims/inquirer');
+const { safeExit } = require('../../../utility');
 const Operation = require('../operation');
+
+const messages = require('./messages');
 
 const handleShouldDeleteAllScriptsAnswer = (answer, subscriber) => {
   if (answer === false) {
-    print(MESSAGE, 'scriptsNotDeleted');
+    printMessage(formatMessage(messages.scriptsNotDeleted));
     subscriber.unsubscribe();
     safeExit();
   } else {
     GlobalConfig.removeAllScripts();
     GlobalConfig.save();
-    print(MESSAGE, 'deletedAllScripts');
+    printMessage(formatMessage(messages.deletedAllScripts));
     subscriber.unsubscribe();
     safeExit();
   }
 };
 
 const shouldDeleteAllScripts = () => {
-  const subscriber = inquirerPrompts.subscribe(({
-    answer,
-  }) => {
-    handleShouldDeleteAllScriptsAnswer(answer, subscriber);
-  }, noop, noop);
+  const subscriber = inquirerPrompts.subscribe(
+    ({ answer }) => {
+      handleShouldDeleteAllScriptsAnswer(answer, subscriber);
+    },
+    noop,
+    noop,
+  );
 
   prompts.next({
     type: 'confirm',
     name: 'shouldDeleteAll',
-    message: Message('shouldDeleteAllScripts'),
+    message: formatMessage(messages.shouldDeleteAllScripts),
     default: false,
   });
 };
@@ -53,7 +46,7 @@ const handler = () => {
   if (Object.keys(GlobalConfig.getScripts()).length > 0) {
     shouldDeleteAllScripts();
   } else {
-    print(MESSAGE, 'noScriptsToDelete');
+    printMessage(formatMessage(messages.noScriptsToDelete));
     safeExit();
   }
 };

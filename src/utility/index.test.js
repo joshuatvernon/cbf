@@ -9,14 +9,13 @@ const {
   getUndocumentedChoice,
   endsWithWhitespace,
   replaceWhitespace,
-  isEmptyString,
   isValidYamlFileName,
   getFirstKey,
   getNameFromKey,
   getParentKey,
   throwError,
   isValidVariablesShape,
-} = require('../../src/utility');
+} = require('./index');
 
 describe('isValidArgumentsLength()', () => {
   it('should return true if arguments length is valid', () => {
@@ -86,18 +85,6 @@ describe('replaceWhitespace()', () => {
   });
 });
 
-describe('isEmptyString()', () => {
-  it('should return true if string is empty', () => {
-    expect(isEmptyString('')).to.equal(true);
-  });
-
-  it('should return false if string is not empty', () => {
-    expect(isEmptyString(' ')).to.equal(false);
-    expect(isEmptyString('abc')).to.equal(false);
-    expect(isEmptyString('\n')).to.equal(false);
-  });
-});
-
 describe('isValidYamlFileName()', () => {
   it('should return true if the string is a valid yaml file name', () => {
     const fileName = 'cbf.yml';
@@ -142,12 +129,16 @@ describe('getParentKey()', () => {
 
 describe('throwError()', () => {
   it('should throw an unknown error', () => {
-    expect(() => { throwError(); }).to.throw('Unknown error');
+    expect(() => {
+      throwError();
+    }).to.throw('Unknown error');
   });
 
   it('should throw an error with the correct error message', () => {
     const errorMessage = 'An error';
-    expect(() => { throwError(errorMessage); }).to.throw(errorMessage);
+    expect(() => {
+      throwError(errorMessage);
+    }).to.throw(errorMessage);
   });
 });
 
@@ -174,7 +165,6 @@ describe('isValidVariablesShape()', () => {
     const variables = ['one', 'two', 'three'];
     expect(isValidVariablesShape(variables)).to.equal(false);
   });
-
 
   it('should return false if variables is a function', () => {
     const variables = () => {

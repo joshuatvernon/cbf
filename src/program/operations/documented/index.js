@@ -1,9 +1,6 @@
 #!/usr/bin/env node
 
-const {
-  CurrentOperatingMode,
-  OperatingMode,
-} = require('../../../operating-mode');
+const { CurrentOperatingMode, OperatingMode } = require('../../../operating-mode');
 const Operation = require('../operation');
 
 const handler = () => {

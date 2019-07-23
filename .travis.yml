@@ -9,6 +9,7 @@ script:
   - "echo last_published_version: $LAST_PUBLISHED_VERSION"
   - "echo build version: $BUILD_VERSION"
   - npm run lint
+  - npm run circular
   - npm run test
 
 deploy:

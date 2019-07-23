@@ -1,20 +1,19 @@
 #!/usr/bin/env node
 
-const {
-  GlobalConfig,
-} = require('../../../config');
-const {
-  MESSAGE,
-  print,
-} = require('../../../messages');
-const {
-  safeExit,
-} = require('../../../utility');
+const { GlobalConfig } = require('../../../config');
+const { printMessage, formatMessage } = require('../../../messages');
+const { safeExit } = require('../../../utility');
 const Operation = require('../operation');
+
+const messages = require('./messages');
 
 const handler = () => {
   GlobalConfig.load();
-  print(MESSAGE, 'printConfig', GlobalConfig);
+  printMessage(
+    formatMessage(messages.printConfig, {
+      config: JSON.stringify(GlobalConfig, null, 4),
+    }),
+  );
   safeExit();
 };
 

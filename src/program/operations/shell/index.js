@@ -2,49 +2,44 @@
 
 const noop = require('lodash/noop');
 
-const {
-  GlobalConfig,
-} = require('../../../config');
-const {
-  PROGRAM_NAME,
-} = require('../../../constants');
-const {
-  print,
-  MESSAGE,
-} = require('../../../messages');
-const {
-  prompts,
-  inquirerPrompts,
-} = require('../../../shims/inquirer');
-const {
-  safeExit,
-} = require('../../../utility');
+const { GlobalConfig } = require('../../../config');
+const { printMessage, formatMessage } = require('../../../messages');
+const { prompts, inquirerPrompts } = require('../../../shims/inquirer');
+const { safeExit } = require('../../../utility');
 const Operation = require('../operation');
+
+const messages = require('./messages');
 
 const getShellQuestion = () => ({
   type: 'list',
   name: 'shell',
-  message: `Which shell would you like ${PROGRAM_NAME} to use?`,
+  message: formatMessage(messages.shellQuestion),
   choices: ['sh', 'bash', 'zsh'],
 });
 
-const handleAnswerShellQuestion = (answer) => {
+const handleAnswerShellQuestion = answer => {
   const shell = `/bin/${answer}`;
 
   GlobalConfig.updateShell(shell);
   GlobalConfig.save();
 
-  print(MESSAGE, 'shellSet', GlobalConfig.getShell());
+  printMessage(
+    formatMessage(messages.shellSet, {
+      shell: GlobalConfig.getShell(),
+    }),
+  );
 };
 
 const handler = () => {
-  const subscriber = inquirerPrompts.subscribe(({
-    answer,
-  }) => {
-    handleAnswerShellQuestion(answer);
-    subscriber.unsubscribe();
-    safeExit();
-  }, noop, noop);
+  const subscriber = inquirerPrompts.subscribe(
+    ({ answer }) => {
+      handleAnswerShellQuestion(answer);
+      subscriber.unsubscribe();
+      safeExit();
+    },
+    noop,
+    noop,
+  );
 
   prompts.next(getShellQuestion());
 };
@@ -52,7 +47,7 @@ const handler = () => {
 const operation = {
   name: 'shell',
   flag: 'S',
-  description: 'set the which shell should run commands',
+  description: 'set which shell commands should be run within',
   args: [],
   whitelist: [],
   run: handler,
