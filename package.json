@@ -16,7 +16,6 @@
     "changes-since-latest-tag": "echo \"$(git --no-pager log $(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))..$(git describe --tags --abbrev=0) --no-merges --oneline --pretty=format:'- %s')\"",
     "build-annotated-tag": "echo \"$(npm run --silent latest-tag-annotated)\n\n$(npm run --silent changes-since-latest-tag)\"",
     "update-latest-tag": "git tag -f \"$(npm run --silent latest-tag)\" \"$(npm run --silent latest-tag)\"^{} -a -m \"$(npm run --silent build-annotated-tag)\"",
-    "preversion": "npm run --silent lint && npm run --silent test",
     "version": "genversion --semi version.js && git add version.js",
     "postversion": "npm run --silent update-latest-tag && git push && git push --follow-tags",
     "current-version": "echo $npm_package_version",
