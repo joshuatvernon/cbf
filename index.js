@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
-const {
-  init,
-} = require('./src/cli');
+const { uncaughtExceptionListener, unhandledRejectionListener } = require('./src/utility');
+const { init } = require('./src/cli');
 
+uncaughtExceptionListener();
+unhandledRejectionListener();
 init();

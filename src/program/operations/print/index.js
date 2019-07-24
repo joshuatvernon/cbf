@@ -1,19 +1,12 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk');
 const isEmpty = require('lodash/isEmpty');
+const chalk = require('chalk');
 
-const {
-  GlobalConfig,
-} = require('../../../config');
-const {
-  print,
-  ERROR,
-} = require('../../../messages');
-const {
-  printJson,
-  safeExit,
-} = require('../../../utility');
+const { GlobalConfig } = require('../../../config');
+const { printMessage, formatMessage } = require('../../../messages');
+const globalMessages = require('../../../messages/messages');
+const { printJson, safeExit } = require('../../../utility');
 const Menu = require('../../../menu');
 const Operation = require('../operation');
 
@@ -26,7 +19,7 @@ const OPERATION_DESCRIPTION = 'print a saved script';
  *
  * TODO change this whole function to print out the .yml file reverse engineered from the .json file
  */
-const printScript = (script) => {
+const printScript = script => {
   // eslint-disable-next-line no-console
   console.log(`${chalk.blue.bold(script.getName())} script:\n`);
 
@@ -43,10 +36,10 @@ const printScript = (script) => {
   printJson(script.getDirectories(), 'blue');
 };
 
-const handler = (args) => {
+const handler = args => {
   GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
-    print(ERROR, 'noSavedScripts');
+    printMessage(formatMessage(globalMessages.noSavedScripts));
     safeExit();
   } else if (isEmpty(args)) {
     const menu = new Menu({
@@ -60,7 +53,11 @@ const handler = (args) => {
     if (script) {
       printScript(script);
     } else {
-      print(ERROR, 'scriptDoesNotExist', scriptName);
+      printMessage(
+        formatMessage(globalMessages.scriptDoesNotExist, {
+          scriptName,
+        }),
+      );
     }
     safeExit();
   }
@@ -70,10 +67,12 @@ const operation = {
   name: OPERATION_NAME,
   flag: OPERATION_FLAG,
   description: OPERATION_DESCRIPTION,
-  args: [{
-    name: 'script name',
-    required: false,
-  }],
+  args: [
+    {
+      name: 'script name',
+      required: false,
+    },
+  ],
   whitelist: [],
   run: handler,
 };

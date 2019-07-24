@@ -2,28 +2,22 @@
 
 const isEmpty = require('lodash/isEmpty');
 
-const {
-  GlobalConfig,
-} = require('../../../config');
-const {
-  print,
-  ERROR,
-  MESSAGE,
-} = require('../../../messages');
-const {
-  safeExit,
-} = require('../../../utility');
+const { GlobalConfig } = require('../../../config');
+const { formatMessage, printMessage } = require('../../../messages');
+const globalMessages = require('../../../messages/messages');
+const { safeExit } = require('../../../utility');
 const Operation = require('../operation');
 
 const handler = () => {
   GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
-    print(ERROR, 'noSavedScripts');
+    printMessage(formatMessage(globalMessages.noSavedScripts));
   } else {
     // print out script names and paths
-    const scriptNames = Object.keys(GlobalConfig.getScripts())
-      .map(key => GlobalConfig.getScript(key).getName());
-    print(MESSAGE, 'listScripts', ...scriptNames);
+    const scriptNames = Object.keys(GlobalConfig.getScripts()).map(key =>
+      GlobalConfig.getScript(key).getName(),
+    );
+    printMessage(formatMessage(globalMessages.listScripts, { scripts: scriptNames }));
   }
 
   safeExit();

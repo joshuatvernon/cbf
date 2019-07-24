@@ -1,48 +1,30 @@
 #!/usr/bin/env node
 
-const chalk = require('chalk');
 const noop = require('lodash/noop');
 const isEmpty = require('lodash/isEmpty');
+const isString = require('lodash/isString');
 
-const {
-  BACK_COMMAND,
-  QUIT_COMMAND,
-  ADD_COMMAND,
-  Modification,
-} = require('../../../constants');
-const {
-  GlobalConfig,
-} = require('../../../config');
-const {
-  Script,
-  Command,
-  Directory,
-} = require('../../../config/script');
+const isEmptyString = s => isString(s) && isEmpty(s);
+
+const { BACK_COMMAND, QUIT_COMMAND, ADD_COMMAND, Modification } = require('../../../constants');
+const { GlobalConfig } = require('../../../config');
+const { Script, Command, Directory } = require('../../../config/script');
 const {
   endsWithWhitespace,
   replaceWhitespace,
-  isEmptyString,
   safeExit,
   getUndocumentedChoices,
 } = require('../../../utility');
-const {
-  print,
-  ERROR,
-  MESSAGE,
-} = require('../../../messages');
-const {
-  prompts,
-  inquirerPrompts,
-} = require('../../../shims/inquirer');
+const { printMessage, formatMessage } = require('../../../messages');
+const globalMessages = require('../../../messages/messages');
+const { prompts, inquirerPrompts } = require('../../../shims/inquirer');
 const CommandAdder = require('../../../command-adder');
 const Menu = require('../../../menu');
 const Operation = require('../operation');
 
-const addCommandToOptionChoices = ({
-  script,
-  optionKey,
-  answers,
-}) => {
+const messages = require('./messages');
+
+const addCommandToOptionChoices = ({ script, optionKey, answers }) => {
   const option = script.getOption(optionKey);
   const choices = option.getChoices();
   if (!choices.includes(answers.name)) {
@@ -58,13 +40,7 @@ const addCommandToOptionChoices = ({
   script.updateOption({ optionKey, option });
 };
 
-const addCommand = ({
-  script,
-  optionKey,
-  commandKey,
-  command,
-  answers,
-}) => {
+const addCommand = ({ script, optionKey, commandKey, command, answers }) => {
   script.addCommand({
     commandKey,
     command,
@@ -82,60 +58,80 @@ const addCommand = ({
     answers,
   });
   GlobalConfig.save();
-  print(MESSAGE, 'savedNewCommand', answers.name, script.getName());
+  printMessage(
+    formatMessage(messages.savedNewCommand, {
+      commandName: answers.name,
+      scriptName: script.getName(),
+    }),
+  );
 };
 
-const getUpdateCommandPrompt = (answers) => {
-  let prompt = `Replace ${chalk.magenta.bold(answers.name)} with ${chalk.magenta.bold(answers.directive)} command`;
+const getUpdateCommandPrompt = answers => {
+  let prompt = formatMessage(messages.replaceCommand, {
+    commandName: answers.name,
+    commandDirective: answers.directive,
+  });
   if (!isEmptyString(answers.message) && isEmptyString(answers.path)) {
-    prompt += ` and ${chalk.magenta.bold(answers.message)} message?`;
+    prompt += formatMessage(messages.hasMessage, {
+      message: answers.message,
+    });
   } else if (isEmptyString(answers.message) && !isEmptyString(answers.path)) {
-    prompt += ` and ${chalk.magenta.bold(answers.path)} directory?`;
+    prompt += formatMessage(messages.hasPath, {
+      path: answers.path,
+    });
   } else if (!isEmptyString(answers.message) && !isEmptyString(answers.path)) {
-    prompt += `, ${chalk.magenta.bold(answers.message)} message and ${chalk.magenta.bold(answers.path)} directory?`;
+    prompt += formatMessage(messages.hasMessageAndHasPath, {
+      message: answers.message,
+      path: answers.path,
+    });
   }
   return prompt;
 };
 
-const updateCommand = ({
-  script,
-  optionKey,
-  commandKey,
-  command,
-  answers,
-}) => {
-  const promptsSubscription = prompts.subscribe(({
-    answer,
-  }) => {
-    if (answer) {
-      script.updateCommand({
-        commandKey,
-        command,
-      });
-      if (answers.path) {
-        const directory = new Directory(answers.path);
-        script.updateDirectory({
-          directoryKey: commandKey,
-          directory,
+const updateCommand = ({ script, optionKey, commandKey, command, answers }) => {
+  const promptsSubscription = prompts.subscribe(
+    ({ answer }) => {
+      if (answer) {
+        script.updateCommand({
+          commandKey,
+          command,
         });
+        if (answers.path) {
+          const directory = new Directory(answers.path);
+          script.updateDirectory({
+            directoryKey: commandKey,
+            directory,
+          });
+        }
+        addCommandToOptionChoices({
+          script,
+          optionKey,
+          answers,
+        });
+        GlobalConfig.save();
+        printMessage(
+          formatMessage(messages.replacedCommand, {
+            commandName: answers.name,
+            commandDirective: answers.directive,
+          }),
+        );
+      } else {
+        printMessage(
+          formatMessage(messages.didNotReplaceCommand, {
+            commandName: answers.name,
+            commandDirective: answers.directive,
+          }),
+        );
       }
-      addCommandToOptionChoices({
-        script,
-        optionKey,
-        answers,
-      });
-      GlobalConfig.save();
-      print(MESSAGE, 'replacedCommand', answers.name, answers.directive);
-    } else {
-      print(MESSAGE, 'didNotReplaceCommand', answers.name, answers.directive);
-    }
-    promptsSubscription.unsubscribe();
-    prompts.complete();
-  }, noop, noop);
+      promptsSubscription.unsubscribe();
+      prompts.complete();
+    },
+    noop,
+    noop,
+  );
 
   // Add's a new line before the question asking user if they want to update command is printed
-  // eslint-disable-next-line no-console
-  console.log('');
+  printMessage(formatMessage(globalMessages.emptyString));
 
   prompts.next({
     type: 'confirm',
@@ -144,58 +140,57 @@ const updateCommand = ({
   });
 };
 
-const addNewCommand = ({
-  script,
-  optionKey,
-}) => {
+const addNewCommand = ({ script, optionKey }) => {
   const commandAdder = new CommandAdder();
 
   // add's a new line before the questions asking user to describe new command
-  print(MESSAGE, 'addingCommandTitle');
+  printMessage(formatMessage(messages.addingCommandTitle));
 
-  const promptsSubscription = inquirerPrompts.subscribe(({
-    answer,
-  }) => {
-    commandAdder.nextAnswer(answer);
-    const question = commandAdder.nextQuestion();
-    if (question) {
-      inquirerPrompts.next(question);
-    } else {
-      promptsSubscription.unsubscribe();
-
-      let key = commandAdder.answers.name;
-      if (endsWithWhitespace(key)) {
-        key = replaceWhitespace(key, '.');
-      }
-      const commandKey = `${optionKey}.${key}`;
-      const command = new Command({
-        variables: [],
-        directives: [commandAdder.answers.directive],
-        message: commandAdder.answers.message,
-      });
-      if (script.getCommand(commandKey)) {
-        updateCommand({
-          script,
-          optionKey,
-          commandKey,
-          command,
-          answers: commandAdder.answers,
-        });
+  const promptsSubscription = inquirerPrompts.subscribe(
+    ({ answer }) => {
+      commandAdder.nextAnswer(answer);
+      const question = commandAdder.nextQuestion();
+      if (question) {
+        inquirerPrompts.next(question);
       } else {
-        addCommand({
-          script,
-          optionKey,
-          commandKey,
-          command,
-          answers: commandAdder.answers,
+        promptsSubscription.unsubscribe();
+
+        let key = commandAdder.answers.name;
+        if (endsWithWhitespace(key)) {
+          key = replaceWhitespace(key, '.');
+        }
+        const commandKey = `${optionKey}.${key}`;
+        const command = new Command({
+          variables: [],
+          directives: [commandAdder.answers.directive],
+          message: commandAdder.answers.message,
         });
+        if (script.getCommand(commandKey)) {
+          updateCommand({
+            script,
+            optionKey,
+            commandKey,
+            command,
+            answers: commandAdder.answers,
+          });
+        } else {
+          addCommand({
+            script,
+            optionKey,
+            commandKey,
+            command,
+            answers: commandAdder.answers,
+          });
+        }
+        inquirerPrompts.complete();
       }
-      inquirerPrompts.complete();
-    }
-  }, (err) => {
-    // eslint-disable-next-line no-console
-    console.warn(err);
-  }, () => {});
+    },
+    error => {
+      // eslint-disable-next-line no-console
+      console.warn(error);
+    },
+    () => {},
+  );
 
   inquirerPrompts.next(commandAdder.nextQuestion());
 };
@@ -218,7 +213,7 @@ const getOptionChoicesWithAddingChoices = (script, optionKey) => {
 
 const getOptionChoicesWithoutCommands = (script, optionKey) => {
   const choices = script.getOption(optionKey).getChoices();
-  return choices.filter((choice) => {
+  return choices.filter(choice => {
     let key = choice;
     if (endsWithWhitespace(key)) {
       key = replaceWhitespace(key);
@@ -227,26 +222,32 @@ const getOptionChoicesWithoutCommands = (script, optionKey) => {
   });
 };
 
-const getScriptModifiedForAdding = (script) => {
+const getScriptModifiedForAdding = script => {
   const copiedScript = Script.copy(script);
 
-  Object.keys(copiedScript.getOptions()).forEach((optionKey) => {
+  Object.keys(copiedScript.getOptions()).forEach(optionKey => {
     const option = copiedScript.getOption(optionKey);
-    const modifiedMessage = `Add a ${chalk.magenta.bold('command')} to ${chalk.cyan.bold(option.getName())}`;
+    const modifiedMessage = formatMessage(messages.modifiedMessage, {
+      optionName: option.getName(),
+    });
     option.updateMessage(modifiedMessage);
-    option.updateChoices(getUndocumentedChoices(getOptionChoicesWithoutCommands(copiedScript, optionKey)));
+    option.updateChoices(
+      getUndocumentedChoices(getOptionChoicesWithoutCommands(copiedScript, optionKey)),
+    );
     copiedScript.updateOption({ optionKey, option });
-    option.updateChoices(getUndocumentedChoices(getOptionChoicesWithAddingChoices(copiedScript, optionKey)));
+    option.updateChoices(
+      getUndocumentedChoices(getOptionChoicesWithAddingChoices(copiedScript, optionKey)),
+    );
     copiedScript.updateOption({ optionKey, option });
   });
 
   return copiedScript;
 };
 
-const handler = (args) => {
+const handler = args => {
   GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
-    print(ERROR, 'noSavedScripts');
+    printMessage(formatMessage(globalMessages.noSavedScripts));
     safeExit();
   } else if (isEmpty(args)) {
     const menu = new Menu({
@@ -261,14 +262,11 @@ const handler = (args) => {
     if (script) {
       const scriptModifiedForAdding = getScriptModifiedForAdding(script);
 
-      print(MESSAGE, 'runningScriptInModifyMode', scriptName);
+      printMessage(formatMessage(messages.runningScriptInModifyMode, { scriptName }));
 
       const promise = scriptModifiedForAdding.run();
 
-      promise.then(({
-        modification,
-        optionKey,
-      }) => {
+      promise.then(({ modification, optionKey }) => {
         if (modification === Modification.ADD_COMMAND) {
           addNewCommand({
             script,
@@ -277,7 +275,11 @@ const handler = (args) => {
         }
       });
     } else {
-      print(ERROR, 'scriptDoesNotExist', scriptName);
+      printMessage(
+        formatMessage(globalMessages.scriptDoesNotExist, {
+          scriptName,
+        }),
+      );
     }
   }
 };
@@ -286,10 +288,12 @@ const operation = {
   name: 'modify',
   flag: 'm',
   description: 'modify a previously saved script',
-  args: [{
-    name: 'script name',
-    required: false,
-  }],
+  args: [
+    {
+      name: 'script name',
+      required: false,
+    },
+  ],
   whitelist: [],
   run: handler,
 };

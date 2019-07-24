@@ -1,256 +1,145 @@
 #!/usr/bin/env node
 
 const chalk = require('chalk');
-const path = require('path');
+const isUndefined = require('lodash/isUndefined');
+const isArray = require('lodash/isArray');
+const isEmpty = require('lodash/isEmpty');
+const isString = require('lodash/isString');
+
+const isEmptyString = s => isString(s) && isEmpty(s);
 
 const {
-  PROGRAM_NAME,
+  PRIMARY_COLOUR,
+  SECONDARY_COLOUR,
+  ERROR_COLOUR,
+  DEFAULT_SEPARATOR,
 } = require('../constants');
 
+const colours = {
+  black: 'black',
+  red: 'red',
+  green: 'green',
+  yellow: 'yellow',
+  blue: 'blue',
+  magenta: 'magenta',
+  cyan: 'cyan',
+  white: 'white',
+  gray: 'gray',
+  primary: PRIMARY_COLOUR,
+  secondary: SECONDARY_COLOUR,
+  error: ERROR_COLOUR,
+};
+
 /**
- * Return message
+ * Colourise a message by replacing colour markers with chalk colours
  *
- * @argument string messageKey - key to lookup the message
- * @argument any args - arguments to be supplied to the message
+ * @argument string message - an unformatted string message to colourise
  */
-const lookupMessage = (messageKey, ...args) => {
-  let message;
-  switch (messageKey) {
-    case 'menu':
-      // args[0] = script name
-      message = `Select a script to ${args[0]} it, display help or quit?`;
-      break;
-    case 'menuAdding':
-      message = `Which script would you like to add a ${chalk.magenta.bold('command')} or ${chalk.magenta.bold('option')} to?`;
-      break;
-    case 'runningScriptInModifyMode':
-      // args[0] = script name
-      message = `Running ${chalk.cyan.bold(args[0])} script in ${chalk.red.bold('modify')} mode\n`;
-      break;
-    case 'addingCommandTitle':
-      message = `\nAdding a ${chalk.magenta.bold('command')}:`;
-      break;
-    case 'didNotReplaceCommand':
-      // args[0] = old command, args[1] = new command
-      message = `\nDid not replace ${chalk.magenta.bold(args[0])} with ${chalk.magenta.bold(args[1])}.`;
-      break;
-    case 'replacedCommand':
-      // args[0] = command name, args[1] = command directive
-      message = `\nReplaced ${chalk.magenta.bold(args[0])} with ${chalk.magenta.bold(args[1])}`;
-      break;
-    case 'shellSet':
-      // args[0] = shell to be set
-      message = `\nShell was set to ${chalk.cyan.bold(args[0])}`;
-      break;
-    case 'commandMessage':
-      // args[0] = command message to be printed
-      message = `\n${args[0]}\n`;
-      break;
-    case 'runCommand':
-      // args[0] = commands to be run, ?args[1] = directory to run command in
-      if (args[0].length === 1) {
-        const command = JSON.stringify(args[0][0]).slice(1, -1);
-        message = `\nRunning ${chalk.cyan.bold(command)}`;
-        if (args[1]) {
-          message = `${message} in ${chalk.cyan.bold(args[1])}`;
-        }
-        message += '\n';
-      } else {
-        message = '\nRunning';
-        if (args[1]) {
-          message += ` commands in ${chalk.cyan.bold(args[1])}`;
-        }
-        message += '\n';
-        let command;
-        for (let i = 0; i < args[0].length; i += 1) {
-          command = JSON.stringify(args[0][i]).slice(1, -1);
-          message += `\n${chalk.cyan.bold(command)}`;
-        }
-        message += '\n';
-      }
-      break;
-    case 'printConfig':
-      // args[0] = config
-      message = `${chalk.cyan.bold(JSON.stringify(args[0], null, 4))}`;
-      break;
-    case 'savedScript':
-      // args[0] = saved script name
-      message = `Saved script as ${chalk.cyan.bold(args[0])}\n\nUse ${chalk.cyan.bold(`${PROGRAM_NAME} -r ${args[0]}`)} to run it`;
-      break;
-    case 'updatedScript':
-      // args[0] = updated script name
-      message = `Updated ${chalk.cyan.bold(args[0])} script\n\nUse ${chalk.cyan.bold(`${PROGRAM_NAME} -r ${args[0]}`)} to run it`;
-      break;
-    case 'loadedScript':
-      // args[0] = loaded script name, // args[1] = loaded script file
-      message = `Running ${chalk.cyan.bold(args[0])} script from ${chalk.magenta.bold(path.basename(args[1]))} file\n`;
-      break;
-    case 'scriptNotReplaced':
-      // args[0] = script to be replaced
-      message = `${chalk.cyan.bold(args[0])} script not replaced`;
-      break;
-    case 'listScripts':
-      // args[0] = scripts
-      message = args.join('\n');
-      break;
-    case 'shouldDelete':
-      // args[0] = script to be deleted
-      message = `Delete ${chalk.cyan.bold(args[0])} script (this action cannot be undone)?`;
-      break;
-    case 'shouldDeleteAllScripts':
-      message = 'Delete all scripts (this action cannot be undone)?';
-      break;
-    case 'scriptNotDeleted':
-      // args[0] = script to be deleted
-      message = `\n${chalk.cyan.bold(args[0])} script not deleted`;
-      break;
-    case 'noScriptsToDelete':
-      message = 'There are currently no scripts to delete';
-      break;
-    case 'scriptsNotDeleted':
-      message = 'Scripts not deleted';
-      break;
-    case 'deletedScript':
-      // args[0] = deleted script
-      message = `\nDeleted ${chalk.cyan.bold(args[0])} script`;
-      break;
-    case 'deletedAllScripts':
-      message = '\nDeleted all scripts';
-      break;
-    case 'duplicateScript':
-      // args[0] = pre-existing script
-      message = `A script with the name ${chalk.cyan.bold(args[0])} already exists.\n\nTry running ${chalk.cyan.bold(`${PROGRAM_NAME} -u ${args[1]}`)} to update it`;
-      break;
-    case 'savedNewCommand':
-      // args[0] = new command name, args[1] = script name
-      message = `\nSaved ${chalk.magenta.bold(args[0])} command to the ${chalk.cyan.bold(args[1])} script. Try running ${chalk.cyan.bold(`${PROGRAM_NAME} -r ${args[1]}`)} to use it.`;
-      break;
-    case 'quit':
-      message = 'Bye ✌️';
-      break;
-    default:
-      message = '';
+const colouriseMessage = message => {
+  let colourisedMessage = message;
+  Object.keys(colours).forEach(colourKey => {
+    const colourTagsRegex = new RegExp(`<${colourKey}>[\\s\\S]*?<${colourKey}>`, 'g');
+    colourisedMessage = colourisedMessage.replace(colourTagsRegex, match => {
+      const colourTagRegex = new RegExp(`<${colourKey}>`, 'g');
+      return chalk[colours[colourKey]](match.replace(colourTagRegex, ''));
+    });
+  });
+  return colourisedMessage;
+};
+
+/**
+ * Replace the placeholders in the unformatted message with the value
+ *
+ * @argument string message - an unformatted string message to format
+ * @argument string placeholder - a placeholder to look for and replace in the message
+ * @argument any value - a value to replace the placeholder with in the message
+ *
+ * @returns string message - message with placeholders formatted
+ */
+const replacePlaceholders = (message, placeholder, value) => {
+  const optionRegex = new RegExp(`{${placeholder}}`, 'g');
+  if (isEmptyString(value) || !isUndefined(value)) {
+    return message.replace(optionRegex, value);
   }
   return message;
 };
 
-const Message = (() => (messageKey, ...args) => lookupMessage(messageKey, ...args))();
-
 /**
- * Return error message
+ * Replace the placeholders in the unformatted message with the array of values
  *
- * @argument string errorMessageKey - key to lookup the error
- * @argument any args - arguments to be supplied to the error
+ * @argument string message - an unformatted string message to format
+ * @argument string placeholder - a placeholder to look for and replace in the message
+ * @argument array values - an array of values to replace the placeholder with in the message
+ * @argument string separator - a separator to separate the values when adding them to the message
+ *
+ * @returns string message - message with array placeholders formatted
  */
-const lookupErrorMessage = (errorMessageKey, ...args) => {
-  let errorMessage;
-  switch (errorMessageKey) {
-    case 'errorLoadingYmlFile':
-      // args[0] = yml file name, args[1] = error message
-      errorMessage = `Error loading ${chalk.cyan.bold(args[0])} file\n\n${chalk.red.bold(args[1])}`;
-      break;
-    case 'errorParsingYmlFile':
-      // args[0] = yml file name, args[1] = error message
-      errorMessage = `Error parsing ${chalk.cyan.bold(args[0])} file\n\n${chalk.red.bold(args[1])}`;
-      break;
-    case 'invalidFlags': {
-      // ...args = invalid flags
-      const invalidArgs = args.filter(arg => arg !== '')
-        .map(arg => chalk.magenta.bold(arg))
-        .join(', ');
-      errorMessage = `\nInvalid arguments passed: ${invalidArgs}`;
-      break;
-    }
-    case 'invalidWhitelisted':
-      // args[0] = flag, args[1] = otherFlag
-      errorMessage = `The ${chalk.magenta.bold(args[0])} and ${chalk.magenta.bold(args[1])} flags are mutually exclusive`;
-      break;
-    case 'invalidNumberOfArgs':
-      // args[0] = command, args[1] = min number of args expected
-      // args[2] = max number of args expected, args[3] = number of args received
-      errorMessage = `The ${chalk.cyan.bold(args[0])} command expects minimum ${chalk.magenta.bold(args[1])} and maximum ${chalk.magenta.bold(args[2])} arguments but recieved ${chalk.magenta.bold(args[3])}`;
-      break;
-    case 'scriptNotUpdated':
-      // args[0] = script name, args[1] = yml file name
-      errorMessage = `There was no script named ${chalk.cyan.bold(args[0])} to update with ${chalk.cyan.bold(args[1])}`;
-      break;
-    case 'noSavedScripts':
-      errorMessage = `You have no saved scripts.\n\nYou can save a script by using ${chalk.cyan.bold(`${PROGRAM_NAME} -s [path to .yml file]`)}`;
-      break;
-    case 'noSuchDirectory':
-      // args[0] = directory that doesn't exist
-      errorMessage = `\nCould not run command in non-existent ${chalk.red.bold(args[0])} directory`;
-      break;
-    case 'errorDeletingScript':
-      // args[0] = script to be deleted
-      errorMessage = `Error deleting ${chalk.cyan.bold(args[0])} script`;
-      break;
-    case 'scriptTagNameDoesNotMatch':
-      // args[0] = new script name, args[1] = .yml file name, args[2] = script to be updated
-      errorMessage = `script tag in ${chalk.cyan.bold(args[0])} script in ${chalk.cyan.bold(args[1])} does not match the ${chalk.cyan.bold(args[2])} script you are trying to update`;
-      break;
-    case 'scriptToBeUpdatedDoesNotExist':
-      // args[0] = current script, args[1] = .yml file name
-      errorMessage = `${chalk.cyan.bold(args[0])} script doesn't exist to be updated\n\nTry saving it as a new script by running ${chalk.cyan.bold(`${PROGRAM_NAME} -s ${args[1]}`)}`;
-      break;
-    case 'noYmlFile':
-      errorMessage = `No path to .yml file passed in\n\nTry rerunning with ${chalk.cyan.bold(`${PROGRAM_NAME} -s [path to .yml file]`)}`;
-      break;
-    case 'invalidYmlFile':
-      // args[0] = .yml file name
-      errorMessage = `${chalk.cyan.bold(args[0])} is an invalid .yml filename`;
-      break;
-    case 'scriptDoesNotExist':
-      // args[0] = script to be run
-      errorMessage = `There is currently no saved script with the name ${chalk.cyan.bold(args[0])}\n\nTry resaving it by using ${chalk.cyan.bold(`${PROGRAM_NAME} -s [path to .yml file]`)}`;
-      break;
-    case 'errorRunningCommand':
-      // args[0] = command to be run, args[1] = error message
-      if (args[0].length === 1) {
-        errorMessage = `\n\nError executing ${chalk.cyan.bold(args[0][0])} command\n\n${chalk.magenta.bold(args[1])}`;
-      } else {
-        errorMessage = '\nError executing commands\n';
-        for (let i = 0; i < args[0].length; i += 1) {
-          errorMessage += `\n${chalk.cyan.bold(args[0][i])}`;
-        }
-        errorMessage += `\n\n${chalk.magenta.bold(args[1])}`;
-      }
-      break;
-    default:
-      errorMessage = `There was an unknown error; feel free to report this on ${chalk.cyan.bold('https://www.npmjs.com/')} or ${chalk.cyan.bold('https://wwww.github.com/')}`;
+const replaceArrayPlaceholders = (message, placeholder, values, separator) => {
+  const arrayRegex = new RegExp(`\\[${placeholder}\\]`, 'g');
+  if (isArray(values) && isEmpty(values)) {
+    return message.replace(arrayRegex, '');
   }
-  return errorMessage;
+  if (isArray(values)) {
+    return message.replace(arrayRegex, values.join(separator));
+  }
+  return message;
 };
 
-const Error = (() => (errorMessageKey, ...args) => lookupErrorMessage(errorMessageKey, ...args))();
+/**
+ * Formats a message and returns it
+ *
+ * @argument Object unformattedMessage - an unformatted message to format
+ * @argument Object options - an object containing properties to replace in the message
+ *
+ * @returns string message - formatted message
+ */
+const formatMessage = (unformattedMessage, options = {}) => {
+  if (isUndefined(unformattedMessage)) {
+    throw new Error('Cannot format message as `unformattedMessage` is undefined');
+  }
 
-const MessageType = Object.freeze({
-  MESSAGE: Symbol('message'),
-  ERROR: Symbol('error'),
-});
+  let { message } = unformattedMessage;
+  if (isUndefined(message)) {
+    throw new Error('Cannot format unformattedMessage as `message` property is undefined');
+  }
+  // Combine defaultOptions and options -- options will override defaultOptions
+  const combinedOptions = {
+    separator: DEFAULT_SEPARATOR,
+    ...unformattedMessage.defaultOptions,
+    ...options,
+  };
+
+  Object.keys(combinedOptions)
+    .filter(optionKey => optionKey !== 'separator')
+    .forEach(optionKey => {
+      // Replace placeholders with options
+      message = replacePlaceholders(message, optionKey, combinedOptions[optionKey]);
+      // Replace array placeholder with array items
+      message = replaceArrayPlaceholders(
+        message,
+        optionKey,
+        combinedOptions[optionKey],
+        combinedOptions.separator,
+      );
+    });
+
+  // Replace colour placeholders with chalk colour
+  message = colouriseMessage(message);
+
+  return message;
+};
 
 /**
- * Print message or error to console
+ * Prints a message to the console
  *
- * @argument MessageType type - either a message or error
- * @argument string key - key to lookup the message/error
- * @argument any args - arguments to be supplied to the messages/errors
+ * @argument string message - a string message to be printed to the console
  */
-const print = (type, key, ...args) => {
-  let messageOrError;
-  if (type === MessageType.MESSAGE) {
-    messageOrError = Message(key, ...args);
-  } else if (type === MessageType.ERROR) {
-    messageOrError = Error(key, ...args);
-  }
+const printMessage = message => {
   // eslint-disable-next-line no-console
-  console.log(messageOrError);
+  console.log(message);
 };
 
 module.exports = {
-  print,
-  MESSAGE: MessageType.MESSAGE,
-  ERROR: MessageType.ERROR,
-  Message,
-  Error,
+  printMessage,
+  formatMessage,
 };

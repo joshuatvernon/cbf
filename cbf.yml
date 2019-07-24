@@ -4,9 +4,9 @@ dev:
     install:
       command: "npm install"
     build:
-      command: "npm install . -g"
+      command: "npm run build"
     clean:
-      command: "npm uninstall . -g"
+      command: "npm run clean"
     lint:
       command: "npm run lint"
     test:

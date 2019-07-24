@@ -1,17 +1,21 @@
 {
   "name": "cbf",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "A package for creating scripts to store and run your most commonly used CLI commands for a repo or just in general",
   "main": "index.js",
   "scripts": {
+    "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
     "lint": "eslint \"./**/*.js\"",
-    "test": "mocha --recursive --exit",
+    "circular": "madge --circular ./index.js",
+    "format": "prettier --write \"**/*.js\" -l \"warn\" && standard --fix",
+    "test": "mocha src --file ./test/setup.js --recursive --exit",
+    "build": "npm install . -g",
+    "clean": "npm uninstall . -g",
     "latest-tag": "echo $(git describe --tags --abbrev=0)",
     "latest-tag-annotated": "echo $(git --no-pager log --tags -n1 --oneline --pretty=\"%s\")",
     "changes-since-latest-tag": "echo \"$(git --no-pager log $(git describe --abbrev=0 --tags $(git rev-list --tags --skip=1 --max-count=1))..$(git describe --tags --abbrev=0) --no-merges --oneline --pretty=format:'- %s')\"",
     "build-annotated-tag": "echo \"$(npm run --silent latest-tag-annotated)\n\n$(npm run --silent changes-since-latest-tag)\"",
     "update-latest-tag": "git tag -f \"$(npm run --silent latest-tag)\" \"$(npm run --silent latest-tag)\"^{} -a -m \"$(npm run --silent build-annotated-tag)\"",
-    "preversion": "npm run --silent lint && npm run --silent test",
     "version": "genversion --semi version.js && git add version.js",
     "postversion": "npm run --silent update-latest-tag && git push && git push --follow-tags",
     "current-version": "echo $npm_package_version",
@@ -55,9 +59,13 @@
     "chai": "^4.2.0",
     "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-import": "^2.18.0",
+    "eslint-plugin-prettier": "^3.1.0",
     "genversion": "^2.1.1",
-    "mocha": "^6.1.4"
+    "madge": "^3.4.4",
+    "mocha": "^6.1.4",
+    "prettier": "1.18.2"
   },
   "publishConfig": {
     "access": "public"

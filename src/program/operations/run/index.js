@@ -2,32 +2,23 @@
 
 const isEmpty = require('lodash/isEmpty');
 
-const {
-  GlobalConfig,
-} = require('../../../config');
-const {
-  Parser,
-} = require('../../../parser');
-const {
-  print,
-  ERROR,
-} = require('../../../messages');
-const {
-  safeExit,
-  isValidYamlFileName,
-} = require('../../../utility');
+const { GlobalConfig } = require('../../../config');
+const { Parser } = require('../../../parser');
+const { printMessage, formatMessage } = require('../../../messages');
+const globalMessages = require('../../../messages/messages');
+const { safeExit, isValidYamlFileName } = require('../../../utility');
 const Menu = require('../../../menu');
 const Operation = require('../operation');
 
-const loadAndRunCbfFile = (ymlFilename) => {
+const loadAndRunCbfFile = ymlFilename => {
   Parser.runScript(ymlFilename);
 };
 
-const handler = (args) => {
+const handler = args => {
   GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
     if (isEmpty(args)) {
-      print(ERROR, 'noSavedScripts');
+      printMessage(formatMessage(globalMessages.noSavedScripts));
       safeExit();
     } else {
       const ymlFilename = args[0];
@@ -49,7 +40,11 @@ const handler = (args) => {
       if (script) {
         script.run();
       } else {
-        print(ERROR, 'scriptDoesNotExist', scriptNameOrYmlFilename);
+        printMessage(
+          formatMessage(globalMessages.scriptDoesNotExist, {
+            scriptName: scriptNameOrYmlFilename,
+          }),
+        );
         safeExit();
       }
     }
@@ -60,10 +55,12 @@ const operation = {
   name: 'run',
   flag: 'r',
   description: 'run a previously saved script',
-  args: [{
-    name: 'script name',
-    required: false,
-  }],
+  args: [
+    {
+      name: 'script name',
+      required: false,
+    },
+  ],
   whitelist: ['documented'],
   run: handler,
 };

@@ -3,6 +3,8 @@
 const chalk = require('chalk');
 
 const PROGRAM_NAME = 'cbf';
+const NPM_LINK = 'https://www.npmjs.com/package/cbf';
+const GITHUB_LINK = 'https://github.com/joshuatvernon/cbf';
 const DEFAULT_SHELL = '/bin/bash';
 const CONFIG_FILE_PATH = `${__dirname}/../config/config.json`;
 const LOCAL_YML_FILE_NAME = `${PROGRAM_NAME}.yml`;
@@ -13,9 +15,15 @@ const ADD_COMMAND = `add ${chalk.magenta.bold('+')}`;
 const Modification = Object.freeze({
   ADD_COMMAND: Symbol('add-command'),
 });
+const DEFAULT_SEPARATOR = ', ';
+const PRIMARY_COLOUR = 'cyan';
+const SECONDARY_COLOUR = 'magenta';
+const ERROR_COLOUR = 'red';
 
 module.exports = {
   PROGRAM_NAME,
+  NPM_LINK,
+  GITHUB_LINK,
   DEFAULT_SHELL,
   CONFIG_FILE_PATH,
   LOCAL_YML_FILE_NAME,
@@ -23,5 +31,9 @@ module.exports = {
   BACK_COMMAND,
   QUIT_COMMAND,
   ADD_COMMAND,
+  DEFAULT_SEPARATOR,
+  PRIMARY_COLOUR,
+  SECONDARY_COLOUR,
+  ERROR_COLOUR,
   Modification,
 };
