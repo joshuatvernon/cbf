@@ -8,7 +8,7 @@ const yaml = require('yamljs');
 const isString = require('lodash/isString');
 const isPlainObject = require('lodash/isPlainObject');
 
-const { BACK_COMMAND, QUIT_COMMAND, ADD_COMMAND } = require('../constants');
+const { BACK_COMMAND, QUIT_COMMAND } = require('../constants');
 const { printMessage, formatMessage } = require('../messages');
 const { prompts } = require('../shims/inquirer');
 
@@ -209,11 +209,7 @@ const getDocumentedChoice = (script, optionKey, choice, documented) => {
     }
     return `${choice} ${chalk.blue.bold('→')} ${chalk.green.bold(directives[0])} . . .`;
   }
-  if (
-    choice.indexOf(BACK_COMMAND) !== -1 ||
-    choice.indexOf(QUIT_COMMAND) !== -1 ||
-    choice.indexOf(ADD_COMMAND) !== -1
-  ) {
+  if (choice.indexOf(BACK_COMMAND) !== -1 || choice.indexOf(QUIT_COMMAND) !== -1) {
     return choice;
   }
   if (!command) {

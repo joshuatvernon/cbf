@@ -36,7 +36,7 @@ __CBF__ scripts are easy to build and follow simple rules:
 
 Here is a basic example script in __CBF__. Also check out the other [examples](./examples) scripts.
 
-```yaml
+```yml
 ---
 example-project:
     message: "Run, build or test example project?"
@@ -78,7 +78,6 @@ Options:
   -A, --delete-all                  delete all previously saved scripts
   -D, --documented                  prepends the command to the questions when running a script
   -l, --list                        list previously saved scripts
-  -m, --modify [script name]        modify a previously saved script
   -p, --print [script name]         print a saved script
   -r, --run [script name]           run a previously saved script
   -s, --save <path to .yml file>    process and save a script

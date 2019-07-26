@@ -5,7 +5,6 @@ const DeleteAllOperation = require('./delete-all');
 const DeleteOperation = require('./delete');
 const DocumentedOperation = require('./documented');
 const ListOperation = require('./list');
-const ModifyOperation = require('./modify');
 const PrintOperation = require('./print');
 const RunOperation = require('./run');
 const SaveOperation = require('./save');
@@ -18,7 +17,6 @@ const OperationTypes = Object.freeze({
   DELETE: Symbol('delete'),
   DOCUMENTED: Symbol('documented'),
   LIST: Symbol('list'),
-  MODIFY: Symbol('modify'),
   PRINT: Symbol('print'),
   RUN: Symbol('run'),
   SAVE: Symbol('save'),
@@ -45,9 +43,6 @@ class Operations {
         break;
       case OperationTypes.LIST:
         operation = ListOperation;
-        break;
-      case OperationTypes.MODIFY:
-        operation = ModifyOperation;
         break;
       case OperationTypes.PRINT:
         operation = PrintOperation;

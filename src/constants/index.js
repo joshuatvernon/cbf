@@ -11,10 +11,6 @@ const LOCAL_YML_FILE_NAME = `${PROGRAM_NAME}.yml`;
 const PATH_TO_LOCAL_YML = `${process.cwd()}/${LOCAL_YML_FILE_NAME}`;
 const BACK_COMMAND = `back ${chalk.blue.bold('↑')}`;
 const QUIT_COMMAND = `quit ${chalk.red.bold('⦸')}`;
-const ADD_COMMAND = `add ${chalk.magenta.bold('+')}`;
-const Modification = Object.freeze({
-  ADD_COMMAND: Symbol('add-command'),
-});
 const DEFAULT_SEPARATOR = ', ';
 const PRIMARY_COLOUR = 'cyan';
 const SECONDARY_COLOUR = 'magenta';
@@ -30,10 +26,8 @@ module.exports = {
   PATH_TO_LOCAL_YML,
   BACK_COMMAND,
   QUIT_COMMAND,
-  ADD_COMMAND,
   DEFAULT_SEPARATOR,
   PRIMARY_COLOUR,
   SECONDARY_COLOUR,
   ERROR_COLOUR,
-  Modification,
 };

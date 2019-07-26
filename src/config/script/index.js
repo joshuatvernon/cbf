@@ -6,13 +6,7 @@ const isString = require('lodash/isString');
 
 const isEmptyString = s => isString(s) && isEmpty(s);
 
-const {
-  BACK_COMMAND,
-  QUIT_COMMAND,
-  ADD_COMMAND,
-  DEFAULT_SHELL,
-  Modification,
-} = require('../../constants');
+const { BACK_COMMAND, QUIT_COMMAND, DEFAULT_SHELL } = require('../../constants');
 const { CurrentOperatingMode, OperatingMode } = require('../../operating-mode');
 const {
   endsWithWhitespace,
@@ -52,7 +46,7 @@ class Script {
    * @argument string shell - the shell to run the command within
    */
   run(shell = DEFAULT_SHELL) {
-    return new Promise(resolve => {
+    return new Promise(() => {
       let key = this.getName();
 
       const subscriber = inquirerPrompts.subscribe(
@@ -73,13 +67,6 @@ class Script {
               prompts.next(option);
               break;
             }
-            case ADD_COMMAND:
-              subscriber.unsubscribe();
-              resolve({
-                modification: Modification.ADD_COMMAND,
-                optionKey: key,
-              });
-              break;
             default:
               // eslint-disable-next-line no-param-reassign
               answer = getUndocumentedChoice(answer);
