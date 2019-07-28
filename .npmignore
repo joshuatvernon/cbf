@@ -1,8 +1,9 @@
 # cbf
 examples
 test
-config.json
 cbf.yml
+config/scripts/
+config/config.json
 
 # Mac
 .DS_Store

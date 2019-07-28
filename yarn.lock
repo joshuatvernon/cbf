@@ -818,6 +818,14 @@ flatten@^1.0.2:
   resolved "https://registry.yarnpkg.com/flatten/-/flatten-1.0.2.tgz#dae46a9d78fbe25292258cc1e780a41d95c03782"
   integrity sha1-2uRqnXj74lKSJYzB54CkHZXAN4I=
 
+formatted-messages@^1.0.2:
+  version "1.0.2"
+  resolved "https://registry.yarnpkg.com/formatted-messages/-/formatted-messages-1.0.2.tgz#5c5ed8962e86f4d1ecba7585105ec3158cac0d2b"
+  integrity sha512-gERAyyRGGmhgCw/QFIp821Iw5wmoC4oNNDqm7VZqSb+7tnvAinXKp0FTjd9Fjr4pgUC7uZg9juj6v1L5WmjjRw==
+  dependencies:
+    chalk "^2.4.1"
+    lodash "^4.17.13"
+
 fs-extra@^6.0.1:
   version "6.0.1"
   resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-6.0.1.tgz#8abc128f7946e310135ddc93b98bddb410e7a34b"

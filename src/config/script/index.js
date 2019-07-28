@@ -6,8 +6,8 @@ const isString = require('lodash/isString');
 
 const isEmptyString = s => isString(s) && isEmpty(s);
 
-const { BACK_COMMAND, QUIT_COMMAND, DEFAULT_SHELL } = require('../../constants');
-const { CurrentOperatingMode, OperatingMode } = require('../../operating-mode');
+const { OperatingModes, BACK_COMMAND, QUIT_COMMAND, DEFAULT_SHELL } = require('../../constants');
+const { CurrentOperatingMode } = require('../../operating-mode');
 const {
   endsWithWhitespace,
   getParentKey,
@@ -43,7 +43,7 @@ class Script {
   /**
    * Runs the script
    *
-   * @argument string shell - the shell to run the command within
+   * @param string shell - the shell to run the command within
    */
   run(shell = DEFAULT_SHELL) {
     return new Promise(() => {
@@ -132,7 +132,7 @@ class Script {
   /**
    * Update the script name
    *
-   * @argument string name - script name
+   * @param string name - script name
    */
   updateName(name) {
     this.name = name;
@@ -150,7 +150,7 @@ class Script {
   /**
    * Updates the scripts options
    *
-   * @argument Option[] options - script options
+   * @param Option[] options - script options
    */
   updateOptions(options) {
     this.options = options;
@@ -167,7 +167,7 @@ class Script {
     if (option) {
       // Add documentation to option
       const documentedOption = Option.copy(option);
-      const documented = CurrentOperatingMode.get() === OperatingMode.RUNNING_WITH_DOCUMENTATION;
+      const documented = CurrentOperatingMode.get() === OperatingModes.RUNNING_WITH_DOCUMENTATION;
       const documentedChoices = getDocumentedChoices(
         this,
         optionKey,
@@ -185,8 +185,8 @@ class Script {
   /**
    * Add an option to the script
    *
-   * @argument string optionKey - the key of the option to be added to the script
-   * @argument Option option - the option to be added to the script
+   * @param string optionKey - the key of the option to be added to the script
+   * @param Option option - the option to be added to the script
    */
   addOption({ optionKey, option }) {
     if (optionKey in this.options) {
@@ -198,8 +198,8 @@ class Script {
   /**
    * Update an option in the script
    *
-   * @argument string optionKey - the key of the option to be updated in the script
-   * @argument Option option - the option to be updated in the script
+   * @param string optionKey - the key of the option to be updated in the script
+   * @param Option option - the option to be updated in the script
    */
   updateOption({ optionKey, option }) {
     this.options[optionKey] = option;
@@ -208,7 +208,7 @@ class Script {
   /**
    * Remove an option from the script
    *
-   * @argument string optionKey - the key of the option to be removed from the script
+   * @param string optionKey - the key of the option to be removed from the script
    */
   removeOption(optionKey) {
     delete this.options[optionKey];
@@ -226,7 +226,7 @@ class Script {
   /**
    * Updates the scripts commands
    *
-   * @argument Command[] commands - script commands
+   * @param Command[] commands - script commands
    */
   updateCommands(commands) {
     this.commands = commands;
@@ -244,8 +244,8 @@ class Script {
   /**
    * Add an command to the script
    *
-   * @argument string commandKey - the key of the command to be added to the script
-   * @argument Command command - the command to be added to the script
+   * @param string commandKey - the key of the command to be added to the script
+   * @param Command command - the command to be added to the script
    */
   addCommand({ commandKey, command }) {
     if (commandKey in this.commands) {
@@ -257,8 +257,8 @@ class Script {
   /**
    * Update an command in the script
    *
-   * @argument string commandKey - the key of the command to be updated in the script
-   * @argument Command command - the command to be updated in the script
+   * @param string commandKey - the key of the command to be updated in the script
+   * @param Command command - the command to be updated in the script
    */
   updateCommand({ commandKey, command }) {
     this.commands[commandKey] = command;
@@ -267,7 +267,7 @@ class Script {
   /**
    * Remove an command from the script
    *
-   * @argument string commandKey - the key of the command to be removed from the script
+   * @param string commandKey - the key of the command to be removed from the script
    */
   removeCommand(commandKey) {
     delete this.commands[commandKey];
@@ -285,7 +285,7 @@ class Script {
   /**
    * Updates the scripts directories
    *
-   * @argument Directory{} directories - script directories
+   * @param Directory{} directories - script directories
    */
   updateDirectories(directories) {
     this.directories = directories;
@@ -294,7 +294,7 @@ class Script {
   /**
    * Return the directory or closest parent directory
    *
-   * @argument directoryKey - the directory key used to find the directory or closest parent
+   * @param directoryKey - the directory key used to find the directory or closest parent
    * directory to run the command in
    */
   getDirectoryOrClosestParentDirectory(directoryKey) {
@@ -322,8 +322,8 @@ class Script {
   /**
    * Add an directory to the script
    *
-   * @argument string directoryKey - the key of the directory to be added to the script
-   * @argument Directory directory - the directory to be added to the script
+   * @param string directoryKey - the key of the directory to be added to the script
+   * @param Directory directory - the directory to be added to the script
    */
   addDirectory({ directoryKey, directory }) {
     if (directoryKey in this.directories) {
@@ -335,8 +335,8 @@ class Script {
   /**
    * Update an directory in the script
    *
-   * @argument string directoryKey - the key of the directory to be updated in the script
-   * @argument Directory directory - the directory to be updated in the script
+   * @param string directoryKey - the key of the directory to be updated in the script
+   * @param Directory directory - the directory to be updated in the script
    */
   updateDirectory({ directoryKey, directory }) {
     this.directories[directoryKey] = directory;
@@ -345,7 +345,7 @@ class Script {
   /**
    * Remove an directory from the script
    *
-   * @argument string directoryKey - the key of the directory to be removed from the script
+   * @param string directoryKey - the key of the directory to be removed from the script
    */
   removeDirectory(directoryKey) {
     delete this.directories[directoryKey];

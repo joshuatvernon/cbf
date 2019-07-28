@@ -1,18 +1,21 @@
 #!/usr/bin/env node
 
+const path = require('path');
+
 const fse = require('fs-extra');
 const isEmpty = require('lodash/isEmpty');
 const camelCase = require('lodash/camelCase');
 const lowerCase = require('lodash/lowerCase');
+const { printMessage, formatMessage } = require('formatted-messages');
 
 const version = require('../../version');
 const { GlobalConfig } = require('../config');
 const { Operations, OperationTypes } = require('../program');
-const { PATH_TO_LOCAL_YML } = require('../constants');
-const { Parser } = require('../parser');
+const { PATH_TO_LOCAL_YAML } = require('../constants');
+const Parser = require('../parser');
 const { commander } = require('../shims/commander');
-const { isValidArgumentsLength, safeExit } = require('../utility');
-const { printMessage, formatMessage } = require('../messages');
+const { isValidParametersLength, safeExit } = require('../utility');
+const globalMessages = require('../messages');
 const Menu = require('../menu');
 
 const messages = require('./messages');
@@ -21,7 +24,7 @@ const validateArgumentLength = (operation, args) => {
   const minimumArgumentsLength = operation.args.filter(arg => arg.required).length;
   const maximumArgumentsLength = operation.args.length;
   if (
-    !isValidArgumentsLength({
+    !isValidParametersLength({
       actual: args.length,
       min: minimumArgumentsLength,
       max: maximumArgumentsLength,
@@ -71,10 +74,17 @@ const getOperationsFromCommander = () => {
   return operations;
 };
 
-const hasLocalCbfFile = () => fse.existsSync(PATH_TO_LOCAL_YML);
+const hasLocalCbfFile = () => fse.existsSync(PATH_TO_LOCAL_YAML);
 
 const loadLocalCbfFile = () => {
-  Parser.runScript(PATH_TO_LOCAL_YML);
+  const script = Parser.getScript(PATH_TO_LOCAL_YAML);
+  printMessage(
+    formatMessage(globalMessages.loadedScript, {
+      scriptName: script.getName(),
+      yamlFileName: path.basename(PATH_TO_LOCAL_YAML),
+    }),
+  );
+  script.run();
 };
 
 const runMenuOrHelp = () => {

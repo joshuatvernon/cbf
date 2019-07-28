@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 const noop = require('lodash/noop');
+const { printMessage, formatMessage } = require('formatted-messages');
 
 const { GlobalConfig } = require('../config');
-const { printMessage, formatMessage } = require('../messages');
-const globalMessages = require('../messages/messages');
+const globalMessages = require('../messages');
 const { Option } = require('../config/script');
 const { commander } = require('../shims/commander');
 const { prompts, inquirerPrompts } = require('../shims/inquirer');

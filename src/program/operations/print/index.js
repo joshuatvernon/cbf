@@ -1,44 +1,51 @@
 #!/usr/bin/env node
 
+const fse = require('fs-extra');
 const isEmpty = require('lodash/isEmpty');
-const chalk = require('chalk');
+const { printMessage, formatMessage } = require('formatted-messages');
 
+const { SCRIPTS_DIRECTORY_PATH } = require('../../../constants');
 const { GlobalConfig } = require('../../../config');
-const { printMessage, formatMessage } = require('../../../messages');
-const globalMessages = require('../../../messages/messages');
-const { printJson, safeExit } = require('../../../utility');
+const globalMessages = require('../../../messages');
+const { safeExit } = require('../../../utility');
 const Menu = require('../../../menu');
 const Operation = require('../operation');
+
+const messages = require('./messages');
 
 const OPERATION_NAME = 'print';
 const OPERATION_FLAG = 'p';
 const OPERATION_DESCRIPTION = 'print a saved script';
 
 /**
- * Print a script
+ * Prints a script as a yaml file
  *
- * TODO change this whole function to print out the .yml file reverse engineered from the .json file
+ * @param scriptName - the name of the script to be printed
  */
-const printScript = script => {
-  // eslint-disable-next-line no-console
-  console.log(`${chalk.blue.bold(script.getName())} script:\n`);
-
-  // eslint-disable-next-line no-console
-  console.log('Options:');
-  printJson(script.getOptions(), 'cyan');
-
-  // eslint-disable-next-line no-console
-  console.log('\nCommands:');
-  printJson(script.getCommands(), 'green');
-
-  // eslint-disable-next-line no-console
-  console.log('\nDirectories:');
-  printJson(script.getDirectories(), 'blue');
+const printScript = scriptName => {
+  fse
+    .readFile(`${SCRIPTS_DIRECTORY_PATH}/${scriptName}.yml`)
+    .then(yamlFile => {
+      printMessage(
+        formatMessage(messages.printScript, {
+          scriptName,
+          script: yamlFile,
+        }),
+      );
+    })
+    .catch(error => {
+      printMessage(
+        formatMessage(messages.errorPrintingScript, {
+          scriptName,
+          error,
+        }),
+      );
+    });
 };
 
-const handler = args => {
+const run = args => {
   GlobalConfig.load();
-  if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
+  if (isEmpty(GlobalConfig.getScriptNames())) {
     printMessage(formatMessage(globalMessages.noSavedScripts));
     safeExit();
   } else if (isEmpty(args)) {
@@ -49,9 +56,8 @@ const handler = args => {
     menu.run();
   } else {
     const scriptName = args[0];
-    const script = GlobalConfig.getScript(scriptName);
-    if (script) {
-      printScript(script);
+    if (GlobalConfig.hasScript(scriptName)) {
+      printScript(scriptName);
     } else {
       printMessage(
         formatMessage(globalMessages.scriptDoesNotExist, {
@@ -74,7 +80,7 @@ const operation = {
     },
   ],
   whitelist: [],
-  run: handler,
+  run,
 };
 
 module.exports = new Operation(operation);

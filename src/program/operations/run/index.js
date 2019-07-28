@@ -1,28 +1,37 @@
 #!/usr/bin/env node
 
+const path = require('path');
+
 const isEmpty = require('lodash/isEmpty');
+const { printMessage, formatMessage } = require('formatted-messages');
 
 const { GlobalConfig } = require('../../../config');
-const { Parser } = require('../../../parser');
-const { printMessage, formatMessage } = require('../../../messages');
-const globalMessages = require('../../../messages/messages');
+const Parser = require('../../../parser');
+const globalMessages = require('../../../messages');
 const { safeExit, isValidYamlFileName } = require('../../../utility');
 const Menu = require('../../../menu');
 const Operation = require('../operation');
 
-const loadAndRunCbfFile = ymlFilename => {
-  Parser.runScript(ymlFilename);
+const loadAndRunCbfFile = yamlFileName => {
+  const script = Parser.getScript(yamlFileName);
+  printMessage(
+    formatMessage(globalMessages.loadedScript, {
+      scriptName: script.getName(),
+      yamlFileName: path.basename(yamlFileName),
+    }),
+  );
+  script.run();
 };
 
-const handler = args => {
+const run = args => {
   GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
     if (isEmpty(args)) {
       printMessage(formatMessage(globalMessages.noSavedScripts));
       safeExit();
     } else {
-      const ymlFilename = args[0];
-      loadAndRunCbfFile(ymlFilename);
+      const yamlFilename = args[0];
+      loadAndRunCbfFile(yamlFilename);
     }
   } else if (isEmpty(args)) {
     const menu = new Menu({
@@ -31,18 +40,17 @@ const handler = args => {
     });
     menu.run();
   } else {
-    const scriptNameOrYmlFilename = args[0];
-    if (isValidYamlFileName(scriptNameOrYmlFilename)) {
-      const ymlFilename = args[0];
-      loadAndRunCbfFile(ymlFilename);
+    const scriptNameOrYamlFileName = args[0];
+    if (isValidYamlFileName(scriptNameOrYamlFileName)) {
+      loadAndRunCbfFile(scriptNameOrYamlFileName);
     } else {
-      const script = GlobalConfig.getScript(scriptNameOrYmlFilename);
+      const script = GlobalConfig.getScript(scriptNameOrYamlFileName);
       if (script) {
         script.run();
       } else {
         printMessage(
           formatMessage(globalMessages.scriptDoesNotExist, {
-            scriptName: scriptNameOrYmlFilename,
+            scriptName: scriptNameOrYamlFileName,
           }),
         );
         safeExit();
@@ -62,7 +70,7 @@ const operation = {
     },
   ],
   whitelist: ['documented'],
-  run: handler,
+  run,
 };
 
 module.exports = new Operation(operation);

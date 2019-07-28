@@ -7,13 +7,13 @@ const noop = require('lodash/noop');
 const cloneDeep = require('lodash/cloneDeep');
 const isEmpty = require('lodash/isEmpty');
 const isString = require('lodash/isString');
+const { printMessage, formatMessage } = require('formatted-messages');
 
 const isEmptyString = s => isString(s) && isEmpty(s);
 
 const { DEFAULT_SHELL } = require('../../../constants');
-const { printMessage, formatMessage } = require('../../../messages');
 const { absolutePath, throwError, safeExit, forceExit } = require('../../../utility');
-const { prompts, inquirerPrompts } = require('../../../shims/inquirer');
+const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 
 const messages = require('./messages');
 
@@ -64,7 +64,7 @@ class Command {
       promises.push(
         new Promise(resolve => {
           prompts.next({
-            type: 'input',
+            type: InquirerPromptTypes.INPUT,
             name: {
               variable,
               resolve,
@@ -179,7 +179,7 @@ class Command {
   /**
    * Updates the command variables
    *
-   * @argument string[] variables - variables to update the command variables
+   * @param string[] variables - variables to update the command variables
    */
   updateVariables(variables) {
     this.variables = variables;
@@ -197,7 +197,7 @@ class Command {
   /**
    * Updates the command directives
    *
-   * @argument string[] directives - directives to update the command directives
+   * @param string[] directives - directives to update the command directives
    */
   updateDirectives(directives) {
     this.directives = directives;
@@ -215,7 +215,7 @@ class Command {
   /**
    * Updates the message of the command
    *
-   * @argument string message - message to update the command message
+   * @param string message - message to update the command message
    */
   updateMessage(message) {
     this.message = message;
@@ -233,7 +233,7 @@ class Command {
   /**
    * Updates the directory of the command
    *
-   * @argument string directory - directory to update the command directory
+   * @param string directory - directory to update the command directory
    */
   updateDirectory(directory) {
     this.directory = directory;

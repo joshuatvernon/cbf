@@ -22,7 +22,7 @@ yarn global add cbf
 
 ### Scripts
 
-__CBF__ uses the concept of _scripts_ stored as `.yml` files. Scripts are made up of `options`, `command`, `message` and `directory` tags that are used to construct the layout of the script.
+__CBF__ uses the concept of _scripts_ stored as `yaml` files. Scripts are made up of `options`, `command`, `variables`, `message` and `directory` tags that are used to construct the layout of the script.
 
 __CBF__ scripts are easy to build and follow simple rules:
 1. The first tag is required and is the scripts name
@@ -72,18 +72,16 @@ Commit a `cbf.yml` to your repository so developers can run `cbf` or `cbf -D` to
 Usage: cbf [options]
 
 Options:
-  -V, --version                     output the version number
-  -c, --config                      display configuration
-  -d, --delete [script name]        delete a previously saved script
-  -A, --delete-all                  delete all previously saved scripts
-  -D, --documented                  prepends the command to the questions when running a script
-  -l, --list                        list previously saved scripts
-  -p, --print [script name]         print a saved script
-  -r, --run [script name]           run a previously saved script
-  -s, --save <path to .yml file>    process and save a script
-  -S, --shell                       set the which shell should run commands
-  -u, --update <path to .yml file>  process and update a script
-  -h, --help                        output usage information
+  -V, --version                   output the version number
+  -d, --delete [script name]      delete a previously saved script
+  -A, --delete-all                delete all previously saved scripts
+  -D, --documented                prepends the command to the questions when running a script
+  -l, --list                      list previously saved scripts
+  -p, --print [script name]       print a saved script
+  -r, --run [script name]         run a previously saved script
+  -s, --save <path to yaml file>  process and save a script
+  -S, --shell                     set which shell commands should be run within
+  -h, --help                      output usage information
 ```
 
 ### Copyright

@@ -2,11 +2,11 @@
 
 const noop = require('lodash/noop');
 const isEmpty = require('lodash/isEmpty');
+const { printMessage, formatMessage } = require('formatted-messages');
 
 const { GlobalConfig } = require('../../../config');
-const { printMessage, formatMessage } = require('../../../messages');
-const globalMessages = require('../../../messages/messages');
-const { prompts, inquirerPrompts } = require('../../../shims/inquirer');
+const globalMessages = require('../../../messages');
+const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 const { safeExit } = require('../../../utility');
 const Menu = require('../../../menu');
 const Operation = require('../operation');
@@ -29,6 +29,7 @@ const shouldDeleteScript = scriptName => {
         safeExit();
       } else {
         GlobalConfig.removeScript(scriptName);
+        GlobalConfig.removeScriptName(scriptName);
         GlobalConfig.save();
         printMessage(
           formatMessage(messages.deletedScript, {
@@ -44,7 +45,7 @@ const shouldDeleteScript = scriptName => {
   );
 
   prompts.next({
-    type: 'confirm',
+    type: InquirerPromptTypes.CONFIRM,
     name: 'shouldDelete',
     message: formatMessage(messages.shouldDelete, {
       scriptName,
@@ -53,7 +54,7 @@ const shouldDeleteScript = scriptName => {
   });
 };
 
-const handler = args => {
+const run = args => {
   GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
     printMessage(formatMessage(globalMessages.noSavedScripts));
@@ -90,7 +91,7 @@ const operation = {
     },
   ],
   whitelist: [],
-  run: handler,
+  run,
 };
 
 module.exports = new Operation(operation);

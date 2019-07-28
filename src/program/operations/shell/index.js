@@ -1,17 +1,17 @@
 #!/usr/bin/env node
 
 const noop = require('lodash/noop');
+const { printMessage, formatMessage } = require('formatted-messages');
 
 const { GlobalConfig } = require('../../../config');
-const { printMessage, formatMessage } = require('../../../messages');
-const { prompts, inquirerPrompts } = require('../../../shims/inquirer');
+const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 const { safeExit } = require('../../../utility');
 const Operation = require('../operation');
 
 const messages = require('./messages');
 
 const getShellQuestion = () => ({
-  type: 'list',
+  type: InquirerPromptTypes.LIST,
   name: 'shell',
   message: formatMessage(messages.shellQuestion),
   choices: ['sh', 'bash', 'zsh'],
@@ -30,7 +30,7 @@ const handleAnswerShellQuestion = answer => {
   );
 };
 
-const handler = () => {
+const run = () => {
   const subscriber = inquirerPrompts.subscribe(
     ({ answer }) => {
       handleAnswerShellQuestion(answer);
@@ -50,7 +50,7 @@ const operation = {
   description: 'set which shell commands should be run within',
   args: [],
   whitelist: [],
-  run: handler,
+  run,
 };
 
 module.exports = new Operation(operation);

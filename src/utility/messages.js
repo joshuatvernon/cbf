@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const messages = {
-  errorLoadingYmlFile: {
-    message: 'Error loading <primary>{ymlFileName}<primary> file\n\n<error>{exception}<error>',
+  errorLoadingYamlFile: {
+    message: 'Error loading <primary>{yamlFileName}<primary> file\n\n<error>{exception}<error>',
   },
 };
 
