@@ -5,7 +5,7 @@ const { expect } = require('chai');
 const { describe, it } = require('mocha');
 
 const {
-  isValidArgumentsLength,
+  isValidParametersLength,
   getUndocumentedChoice,
   endsWithWhitespace,
   replaceWhitespace,
@@ -17,9 +17,9 @@ const {
   isValidVariablesShape,
 } = require('./index');
 
-describe('isValidArgumentsLength()', () => {
-  it('should return true if arguments length is valid', () => {
-    const result = isValidArgumentsLength({
+describe('isValidParametersLength()', () => {
+  it('should return true if params length is valid', () => {
+    const result = isValidParametersLength({
       actual: 1,
       min: 1,
       max: 1,
@@ -28,24 +28,24 @@ describe('isValidArgumentsLength()', () => {
     expect(result).to.equal(true);
   });
 
-  it('should return false if arguments length is more than max', () => {
-    const result = isValidArgumentsLength({
+  it('should return false if params length is more than max', () => {
+    const result = isValidParametersLength({
       actual: 2,
       max: 1,
     });
     expect(result).to.equal(false);
   });
 
-  it('should return false if arguments length is less than min', () => {
-    const result = isValidArgumentsLength({
+  it('should return false if params length is less than min', () => {
+    const result = isValidParametersLength({
       actual: 1,
       min: 2,
     });
     expect(result).to.equal(false);
   });
 
-  it('should return false if arguments length is not exact', () => {
-    const result = isValidArgumentsLength({
+  it('should return false if params length is not exact', () => {
+    const result = isValidParametersLength({
       actual: 2,
       exact: 3,
     });

@@ -1,14 +1,10 @@
 #!/usr/bin/env node
 
-const OperatingMode = Object.freeze({
-  DEFAULT: Symbol('default'),
-  RUNNING: Symbol('running'),
-  RUNNING_WITH_DOCUMENTATION: Symbol('running-with-documentation'),
-});
+const { OperatingModes } = require('../constants');
 
 class CurrentOperatingMode {
   constructor() {
-    this.operatingMode = OperatingMode.DEFAULT;
+    this.operatingMode = OperatingModes.DEFAULT;
   }
 
   get() {
@@ -22,5 +18,4 @@ class CurrentOperatingMode {
 
 module.exports = {
   CurrentOperatingMode: new CurrentOperatingMode(),
-  OperatingMode,
 };

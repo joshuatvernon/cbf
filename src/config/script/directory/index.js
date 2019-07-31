@@ -30,7 +30,7 @@ class Directory {
   /**
    * Updates the directories path
    *
-   * @argument string path - path to update the directories path
+   * @param string path - path to update the directories path
    */
   updatePath(path) {
     this.path = path;

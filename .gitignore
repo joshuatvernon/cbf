@@ -1,6 +1,6 @@
 # cbf
-config.json
-tests.sh
+config/scripts/
+config/config.json
 
 # Logs
 logs

@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 const isEmpty = require('lodash/isEmpty');
+const { printMessage, formatMessage } = require('formatted-messages');
 
 const { GlobalConfig } = require('../../../config');
-const { formatMessage, printMessage } = require('../../../messages');
-const globalMessages = require('../../../messages/messages');
+const globalMessages = require('../../../messages');
 const { safeExit } = require('../../../utility');
 const Operation = require('../operation');
 
-const handler = () => {
+const run = () => {
   GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
     printMessage(formatMessage(globalMessages.noSavedScripts));
@@ -29,7 +29,7 @@ const operation = {
   description: 'list previously saved scripts',
   args: [],
   whitelist: [],
-  run: handler,
+  run,
 };
 
 module.exports = new Operation(operation);

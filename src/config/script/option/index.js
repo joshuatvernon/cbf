@@ -3,12 +3,11 @@
 const cloneDeep = require('lodash/cloneDeep');
 
 const { throwError } = require('../../../utility');
-
-const DEFAULT_OPTION_TYPE = 'list';
+const { InquirerPromptTypes } = require('../../../shims/inquirer');
 
 class Option {
   constructor({ name = '', message = '', choices = [] } = {}) {
-    this.type = DEFAULT_OPTION_TYPE;
+    this.type = InquirerPromptTypes.LIST;
     this.name = name;
     this.message = message;
     this.choices = choices;
@@ -38,7 +37,7 @@ class Option {
   /**
    * Updates the options name
    *
-   * @argument string name - the name to update the options name with
+   * @param string name - the name to update the options name with
    */
   updateName(name) {
     this.name = name;
@@ -56,7 +55,7 @@ class Option {
   /**
    * Updates the options message
    *
-   * @argument string message - the message to update the options message with
+   * @param string message - the message to update the options message with
    */
   updateMessage(message) {
     this.message = message;
@@ -74,7 +73,7 @@ class Option {
   /**
    * Updates the options choices
    *
-   * @argument string[] choices - the choices to update the options choices with
+   * @param string[] choices - the choices to update the options choices with
    */
   updateChoices(choices) {
     this.choices = choices;

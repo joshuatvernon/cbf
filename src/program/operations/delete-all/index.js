@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 const noop = require('lodash/noop');
+const { printMessage, formatMessage } = require('formatted-messages');
 
 const { GlobalConfig } = require('../../../config');
-const { printMessage, formatMessage } = require('../../../messages');
-const { prompts, inquirerPrompts } = require('../../../shims/inquirer');
+const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 const { safeExit } = require('../../../utility');
 const Operation = require('../operation');
 
@@ -17,6 +17,7 @@ const handleShouldDeleteAllScriptsAnswer = (answer, subscriber) => {
     safeExit();
   } else {
     GlobalConfig.removeAllScripts();
+    GlobalConfig.removeAllScriptNames();
     GlobalConfig.save();
     printMessage(formatMessage(messages.deletedAllScripts));
     subscriber.unsubscribe();
@@ -34,14 +35,14 @@ const shouldDeleteAllScripts = () => {
   );
 
   prompts.next({
-    type: 'confirm',
+    type: InquirerPromptTypes.CONFIRM,
     name: 'shouldDeleteAll',
     message: formatMessage(messages.shouldDeleteAllScripts),
     default: false,
   });
 };
 
-const handler = () => {
+const run = () => {
   GlobalConfig.load();
   if (Object.keys(GlobalConfig.getScripts()).length > 0) {
     shouldDeleteAllScripts();
@@ -57,7 +58,7 @@ const operation = {
   description: 'delete all previously saved scripts',
   args: [],
   whitelist: [],
-  run: handler,
+  run,
 };
 
 module.exports = new Operation(operation);

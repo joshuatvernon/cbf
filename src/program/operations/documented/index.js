@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 
-const { CurrentOperatingMode, OperatingMode } = require('../../../operating-mode');
+const { OperatingModes } = require('../../../constants');
+const { CurrentOperatingMode } = require('../../../operating-mode');
 const Operation = require('../operation');
 
-const handler = () => {
-  CurrentOperatingMode.set(OperatingMode.RUNNING_WITH_DOCUMENTATION);
+const run = () => {
+  CurrentOperatingMode.set(OperatingModes.RUNNING_WITH_DOCUMENTATION);
 };
 
 const operation = {
@@ -13,7 +14,7 @@ const operation = {
   description: 'prepends the command to the questions when running a script',
   args: [],
   whitelist: ['run'],
-  run: handler,
+  run,
 };
 
 module.exports = new Operation(operation);
