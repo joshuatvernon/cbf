@@ -1,0 +1,41 @@
+{
+  "projects": {
+    "directory": "~/projects",
+    "options": {
+      "node": {
+        "message": "Node project",
+        "directory": "~/projects/node",
+        "command": {
+          "1": "nvm use",
+          "2": "yarn start"
+        }
+      },
+      "java": {
+        "message": "Java project",
+        "directory": "~/projects/java",
+        "command": "mvn exec:java -Dexec.mainClass=\"com.example.Main\""
+      },
+      "python": {
+        "message": "Python project",
+        "directory": "~/projects/python",
+        "options": {
+          "run": {
+            "command": "python index.py"
+          },
+          "install": {
+            "directory": "~/projects/python/src",
+            "command": "pip install -r requirements.txt"
+          }
+        }
+      },
+      "new": {
+        "message": "Creating new project",
+        "command": {
+          "1": "mkdir new",
+          "2": "cd new",
+          "3": "git init"
+        }
+      }
+    }
+  }
+}

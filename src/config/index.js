@@ -7,23 +7,77 @@ const cloneDeep = require('lodash/cloneDeep');
 const { printMessage, formatMessage } = require('formatted-messages');
 
 const Parser = require('../parser');
-const { CONFIG_FILE_PATH, SCRIPTS_DIRECTORY_PATH, DEFAULT_SHELL } = require('../constants');
-const { throwError, deleteYamlFile } = require('../utility');
+const {
+  SCRIPT_EXTENSIONS,
+  CONFIG_FILE_PATH,
+  SCRIPTS_DIRECTORY_PATH,
+  DEFAULT_SHELL,
+  JSON_SPACES_FORMATTING,
+} = require('../constants');
+const {
+  isEmptyString,
+  throwError,
+  deleteYamlFile,
+  isValidYamlFileName,
+  isValidJsonFileName,
+  deleteJsonFile,
+  safeExit,
+} = require('../utility');
 
 const messages = require('./messages');
 
-const getConfig = () => JSON.parse(fse.readFileSync(CONFIG_FILE_PATH, 'utf8'));
+/**
+ * Load the config from the config.json file into memory
+ *
+ * @returns {object} config - config parsed from config.json file
+ */
+const loadConfigJson = () => fse.readJsonSync(CONFIG_FILE_PATH);
+
+/**
+ * Save config to the config.json file
+ *
+ * @param {object} param                - object parameter
+ * @param {string} param.shell          - shell to save to the config.json
+ * @param {string[]} param.scriptNames  - script names to save to the config.json
+ */
+const saveConfigJson = ({ shell, scriptNames }) => {
+  fse.outputJsonSync(
+    CONFIG_FILE_PATH,
+    {
+      shell,
+      scriptNames,
+    },
+    {
+      spaces: JSON_SPACES_FORMATTING,
+    },
+  );
+};
 
 /**
  * Config stores CBF settings and scripts in memory and saves them to config.json
  */
 class Config {
+  /**
+   * Construct a config
+   *
+   * @param {object} param               - object parameter
+   * @param {string} param.shell         - the config shell
+   * @param {string[]} param.scriptNames - the config script names
+   * @param {object} param.scripts       - the config scripts
+   */
   constructor({ shell = DEFAULT_SHELL, scriptNames = [], scripts = {} } = {}) {
     this.shell = shell;
     this.scriptNames = scriptNames;
     this.scripts = scripts;
   }
 
+  /**
+   * Return a copy of the config
+   *
+   * @param {Config} config         - config to be copied
+   *
+   * @returns {Config} copiedConfig - copied config
+   */
   static copy(config) {
     if (!(config instanceof Config)) {
       throwError(
@@ -42,13 +96,32 @@ class Config {
     this.removeAllScriptNames();
     this.removeAllScripts();
 
-    if (fse.existsSync(CONFIG_FILE_PATH)) {
-      const { shell, scriptNames } = getConfig();
+    if (fse.pathExistsSync(CONFIG_FILE_PATH)) {
+      const { shell, scriptNames } = loadConfigJson();
       this.updateShell(shell);
       scriptNames.forEach(scriptName => this.addScriptName(scriptName));
       scriptNames
-        .map(scriptName => `${SCRIPTS_DIRECTORY_PATH}/${scriptName}.yml`)
-        .map(scriptName => Parser.getScript(scriptName))
+        // Map saved script name to yaml or json file path
+        .map(scriptName => {
+          let fileName = '';
+          SCRIPT_EXTENSIONS.forEach(scriptExtension => {
+            const potentialScriptFileName = `${SCRIPTS_DIRECTORY_PATH}/${scriptName}${scriptExtension}`;
+            if (fse.pathExistsSync(potentialScriptFileName)) {
+              fileName = potentialScriptFileName;
+            }
+          });
+          if (isEmptyString(fileName)) {
+            this.removeScriptName(scriptName);
+          }
+          return fileName;
+        })
+        .filter(fileName => !isEmptyString(fileName))
+        .map(fileName => {
+          if (isValidYamlFileName(fileName)) {
+            return Parser.getScriptFromYamlFile(fileName);
+          }
+          return Parser.getScriptFromJsonFile({ fileName });
+        })
         .forEach(script => this.addScript(script));
     } else {
       // Save default config
@@ -61,39 +134,44 @@ class Config {
    */
   save() {
     // Delete unsaved scripts
-    fse
-      .readdir(SCRIPTS_DIRECTORY_PATH)
-      .then(scripts => {
-        scripts
-          .filter(scriptName => path.extname(scriptName) === '.yml')
-          .filter(scriptName => !this.scriptNames.includes(path.basename(scriptName, '.yml')))
-          .map(scriptName => `${SCRIPTS_DIRECTORY_PATH}/${scriptName}`)
-          .forEach(scriptName => deleteYamlFile(scriptName));
-      })
-      .catch(error => {
-        printMessage(
-          formatMessage(messages.errorDeletingScript, {
-            error,
-          }),
-        );
+    let scriptFileNames;
+    try {
+      scriptFileNames = fse.readdirSync(SCRIPTS_DIRECTORY_PATH);
+      scriptFileNames.forEach(scriptFileName => {
+        if (
+          isValidYamlFileName(scriptFileName) &&
+          !this.hasScript(path.basename(scriptFileName, '.yml')) &&
+          !this.hasScript(path.basename(scriptFileName, '.simple.yml'))
+        ) {
+          deleteYamlFile(`${SCRIPTS_DIRECTORY_PATH}/${scriptFileName}`);
+        }
+        if (
+          isValidJsonFileName(scriptFileName) &&
+          !this.hasScript(path.basename(scriptFileName, '.json')) &&
+          !this.hasScript(path.basename(scriptFileName, '.simple.json'))
+        ) {
+          deleteJsonFile(`${SCRIPTS_DIRECTORY_PATH}/${scriptFileName}`);
+        }
       });
+    } catch (error) {
+      printMessage(
+        formatMessage(messages.errorDeletingScript, {
+          error,
+        }),
+      );
+      safeExit();
+    }
 
-    fse.outputJsonSync(
-      CONFIG_FILE_PATH,
-      {
-        shell: this.shell,
-        scriptNames: this.scriptNames,
-      },
-      {
-        spaces: 4,
-      },
-    );
+    saveConfigJson({
+      shell: this.shell,
+      scriptNames: this.scriptNames,
+    });
   }
 
   /**
    * Return the currently set shell
    *
-   * @returns currently set shell
+   * @returns {string} shell - currently set shell
    */
   getShell() {
     return this.shell;
@@ -102,7 +180,7 @@ class Config {
   /**
    * Set the current shell
    *
-   * @param string shell - the configured shell to run commands in
+   * @param {string} shell - the configured shell to run commands in
    */
   updateShell(shell) {
     this.shell = shell;
@@ -111,7 +189,7 @@ class Config {
   /**
    * Return the script names
    *
-   * @returns script names
+   * @returns {string[]} scriptNames - script names
    */
   getScriptNames() {
     return this.scriptNames;
@@ -120,7 +198,7 @@ class Config {
   /**
    * Add a script name to config
    *
-   * @param scriptName - script name to add to config
+   * @param {string} scriptName - script name to add to config
    */
   addScriptName(scriptName) {
     this.scriptNames.push(scriptName);
@@ -129,7 +207,7 @@ class Config {
   /**
    * Remove a script names from config
    *
-   * @param scriptName - script to remove from config
+   * @param {string} scriptName - name of script to remove from config
    */
   removeScriptName(scriptName) {
     this.scriptNames = this.scriptNames.filter(s => s !== scriptName);
@@ -143,9 +221,9 @@ class Config {
   }
 
   /**
-   * Returns the scripts in thje config
+   * Returns the scripts in the config
    *
-   * @returns Scripts scripts in config
+   * @returns {object} scripts - scripts in config
    */
   getScripts() {
     return this.scripts;
@@ -154,7 +232,7 @@ class Config {
   /**
    * Set the scripts in the config
    *
-   * @param {Object} scripts - scripts to be added to the config
+   * @param {object} scripts - scripts to be added to the config
    */
   updateScripts(scripts) {
     this.scripts = scripts;
@@ -170,9 +248,9 @@ class Config {
   /**
    * Returns a script from the config
    *
-   * @param string scriptName - the name of the script to return
+   * @param {string} scriptName - the name of the script to return
    *
-   * @returns Script script in the config with the matching name
+   * @returns {Script} script   - script in the config with the matching name
    */
   getScript(scriptName) {
     return this.scripts[scriptName];
@@ -181,9 +259,9 @@ class Config {
   /**
    * Add a script to the config
    *
-   * @param Script script - the script to add to the config
+   * @param {Script} script - the script to add to the config
    *
-   * @throws error if the config already has a script with the same name
+   * @throws {Error} error  - error if the config already has a script with the same name
    */
   addScript(script) {
     if (script.name in this.scripts) {
@@ -196,7 +274,7 @@ class Config {
   /**
    * Update a script in the config
    *
-   * @param Script script - the script to be updated in the config
+   * @param {Script} script - the script to be updated in the config
    */
   updateScript(script) {
     this.scripts[script.name] = script;
@@ -205,7 +283,7 @@ class Config {
   /**
    * Remove a script from the config
    *
-   * @param string scriptName - the name of the script to removed from the config
+   * @param {string} scriptName - the name of the script to removed from the config
    */
   removeScript(scriptName) {
     delete this.scripts[scriptName];
@@ -214,8 +292,9 @@ class Config {
   /**
    * Check if a config has a script
    *
-   * @param String scriptName - script name to check in config
-   * @returns boolean hasScript - config has script
+   * @param {string} scriptName   - script name to check in config
+   *
+   * @returns {boolean} hasScript - config has script
    */
   hasScript(scriptName) {
     return this.scriptNames.includes(scriptName);

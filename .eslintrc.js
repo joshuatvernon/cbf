@@ -1,7 +1,7 @@
 module.exports = {
   root: true,
-  extends: ['airbnb-base', 'prettier'],
-  plugins: ['prettier'],
+  plugins: ['prettier', 'jsdoc'],
+  extends: ['airbnb-base', 'prettier', 'plugin:jsdoc/recommended'],
   env: {
     commonjs: true,
     es6: true,
@@ -19,6 +19,7 @@ module.exports = {
     'prettier/prettier': 'error',
     'no-duplicate-imports': 'error',
     'import/no-duplicates': 'error',
+    'jsdoc/no-undefined-types': 'warn',
     'import/order': [
       'error',
       {

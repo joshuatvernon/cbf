@@ -1,0 +1,31 @@
+{
+  "example": {
+    "message": "Run alias, deploy, directories, input, project or setup script",
+    "options": {
+      "alias": {
+        "message": "Running the alias `cbf` example...",
+        "command": "cbf -r alias.yml"
+      },
+      "deploy": {
+        "message": "Running the deploy `cbf` example...",
+        "command": "cbf -r deploy.yml"
+      },
+      "directories": {
+        "message": "Running the directories `cbf` example...",
+        "command": "cbf -r directories.yml"
+      },
+      "input": {
+        "message": "Running the input `cbf` example...",
+        "command": "cbf -r input.yml"
+      },
+      "project": {
+        "message": "Running the project `cbf` example...",
+        "command": "cbf -r project.yml"
+      },
+      "setup": {
+        "message": "Running the setup `cbf` example...",
+        "command": "cbf -r setup.yml"
+      }
+    }
+  }
+}

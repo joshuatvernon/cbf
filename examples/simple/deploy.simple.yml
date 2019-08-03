@@ -1,0 +1,7 @@
+---
+# An example `deploy` script that could be referenced from the README.md file in
+# a repository for developers to easily run the steps needed to deploy the code
+deploy:
+  step-1: "aws s3 mb s3://codedeploydemobucket"
+  step-2: "aws deploy create-application --application-name HelloWorld_App"
+  step-3: "aws deploy push --application-name HelloWorld_App --s3-location s3://codedeploydemobucket/HelloWorld_App.zip --ignore-hidden-files"

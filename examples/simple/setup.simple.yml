@@ -1,0 +1,11 @@
+---
+# An example of a `getting started` setup script you could reference in your README.md
+# in your repository to make setting up a new project a lot easier for new contributors
+setup:
+  step-1: "brew install python"
+  "step-2:1": "curl -O http://python-distribute.org/distribute_setup.py"
+  "step-2:2": "python distribute_setup.py"
+  "step-2:3": "curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py"
+  "step-2:4": "python get-pip.py"
+  step-3: "pip install virtualenv"
+  step-4: "virtualenv venv"

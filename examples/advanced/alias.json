@@ -1,0 +1,6 @@
+{
+  "alias": {
+    "message": "Getting a random definition from Urban Dictionary...",
+    "command": "curl -s http://api.urbandictionary.com/v0/random | jq -r '.list[0] | .word + \":\n\n\" +  .definition' | cat"
+  }
+}

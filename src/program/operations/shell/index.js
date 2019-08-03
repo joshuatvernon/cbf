@@ -6,17 +6,15 @@ const { printMessage, formatMessage } = require('formatted-messages');
 const { GlobalConfig } = require('../../../config');
 const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 const { safeExit } = require('../../../utility');
-const Operation = require('../operation');
+const { Operation } = require('../operation');
 
 const messages = require('./messages');
 
-const getShellQuestion = () => ({
-  type: InquirerPromptTypes.LIST,
-  name: 'shell',
-  message: formatMessage(messages.shellQuestion),
-  choices: ['sh', 'bash', 'zsh'],
-});
-
+/**
+ * Handle the answer to whether or not the shell should be updated
+ *
+ * @param {string} answer - the shell script the user chose to update the shell in the config with
+ */
 const handleAnswerShellQuestion = answer => {
   const shell = `/bin/${answer}`;
 
@@ -30,6 +28,9 @@ const handleAnswerShellQuestion = answer => {
   );
 };
 
+/**
+ * Run the shell operation
+ */
 const run = () => {
   const subscriber = inquirerPrompts.subscribe(
     ({ answer }) => {
@@ -41,7 +42,12 @@ const run = () => {
     noop,
   );
 
-  prompts.next(getShellQuestion());
+  prompts.next({
+    type: InquirerPromptTypes.LIST,
+    name: 'shell',
+    message: formatMessage(messages.shellQuestion),
+    choices: ['sh', 'bash', 'zsh'],
+  });
 };
 
 const operation = {

@@ -1,0 +1,9 @@
+---
+# An example `projects` script to show how the `directory` tag can be used to store
+# commands related to directories
+projects:
+  "node": "nvm use && yarn start"
+  java: "mvn exec:java -Dexec.mainClass=\"com.example.Main\""
+  "python:run": "python index.py"
+  "python:install": "pip install -r requirements.txt"
+  "new": "mkdir new && cd new && git init"

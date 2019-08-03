@@ -1,6 +1,31 @@
 #!/usr/bin/env node
 
+class Argument {
+  /**
+   * Construct an argument
+   *
+   * @param {object} param           - object parameter
+   * @param {boolean} param.required - whether or not the argument is required
+   * @param {string} param.name      - the name of the argument
+   */
+  constructor({ required = false, name = '' }) {
+    this.required = required;
+    this.name = name;
+  }
+}
+
 class Operation {
+  /**
+   * Construct an operation
+   *
+   * @param {object} param             - object parameter
+   * @param {string} param.name        - the operations name
+   * @param {string} param.flag        - the operations flag
+   * @param {string} param.description - the operations description
+   * @param {Argument[]} param.args    - the operations expected arguments
+   * @param {string[]} param.whitelist - the whitelist of operations this operation can be run with
+   * @param {Function} param.run       - the operations run handler
+   */
   constructor({
     name = '',
     flag = '',
@@ -16,34 +41,9 @@ class Operation {
     this.whitelist = whitelist;
     this.run = run;
   }
-
-  getName() {
-    return this.name;
-  }
-
-  getFlag() {
-    return this.flag;
-  }
-
-  getDescription() {
-    return this.description;
-  }
-
-  getArgs() {
-    return this.args;
-  }
-
-  getWhitelist() {
-    return this.whitelist;
-  }
-
-  getRun() {
-    return this.run;
-  }
-
-  run() {
-    this.run();
-  }
 }
 
-module.exports = Operation;
+module.exports = {
+  Argument,
+  Operation,
+};

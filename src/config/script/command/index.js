@@ -5,19 +5,45 @@ const { spawn } = require('child_process');
 const fse = require('fs-extra');
 const noop = require('lodash/noop');
 const cloneDeep = require('lodash/cloneDeep');
-const isEmpty = require('lodash/isEmpty');
-const isString = require('lodash/isString');
 const { printMessage, formatMessage } = require('formatted-messages');
 
-const isEmptyString = s => isString(s) && isEmpty(s);
-
-const { DEFAULT_SHELL } = require('../../../constants');
-const { absolutePath, throwError, safeExit, forceExit } = require('../../../utility');
+const { DEFAULT_SHELL, PROGRAM_NAME } = require('../../../constants');
+const {
+  isEmptyString,
+  absolutePath,
+  throwError,
+  safeExit,
+  forceExit,
+} = require('../../../utility');
 const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 
 const messages = require('./messages');
 
+/**
+ * Handle an error while running a command
+ *
+ * @param {object} param              - object parameter
+ * @param {Error|string} param.error  - error that occurred while running command
+ * @param {string[]} param.directives - directives ran that caused error
+ */
+const handleCommandError = ({ error, directives }) => {
+  if (directives.length === 1) {
+    printMessage(formatMessage(messages.errorRunningCommand, { command: directives[0], error }));
+  } else {
+    printMessage(formatMessage(messages.errorRunningCommands, { commands: directives, error }));
+  }
+  safeExit();
+};
+
 class Command {
+  /**
+   * Construct a command
+   *
+   * @param {object} param              - object parameter
+   * @param {string[]} param.variables  - the commands variables
+   * @param {string[]} param.directives - the commands directives
+   * @param {string} param.message      - the commands message
+   */
   constructor({ variables = [], directives = [], message = '' } = {}) {
     this.variables = variables;
     this.directives = directives;
@@ -26,6 +52,13 @@ class Command {
     }
   }
 
+  /**
+   * Return a copy of the command
+   *
+   * @param {Command} command         - command to be copied
+   *
+   * @returns {Command} copiedCommand - copied command
+   */
   static copy(command) {
     if (!(command instanceof Command)) {
       throwError(
@@ -38,7 +71,7 @@ class Command {
   /**
    * Prompts the user for values for the command variables and saves them to the command directives
    *
-   * @returns Promise updatedDirectivesWithVariables - a promise that all the command directives have been updated with command variables
+   * @returns {Promise} updatedDirectivesWithVariables - a promise that all the command directives have been updated with command variables
    */
   updateDirectivesWithVariables() {
     const promises = [];
@@ -81,12 +114,15 @@ class Command {
 
   /**
    * Run the command
+   *
+   * @param {object} param              - object parameter
+   * @param {string} param.shell        - shell to run the command in
+   * @param {Directory} param.directory - directory to run the command in
    */
   run({ shell = DEFAULT_SHELL, directory }) {
-    let path = '';
-    if (directory) {
-      path = absolutePath(directory.getPath());
-      if (!fse.existsSync(path)) {
+    const path = absolutePath(directory.getPath());
+    if (!isEmptyString(path)) {
+      if (!fse.pathExistsSync(path)) {
         printMessage(formatMessage(messages.noSuchDirectory, { path: directory.getPath() }));
         forceExit();
       }
@@ -120,7 +156,7 @@ class Command {
       }
 
       // If the directive will run `cbf` we safe exit the parent running `cbf`
-      if (directive.indexOf('cbf') !== -1) {
+      if (directive.indexOf(PROGRAM_NAME) !== -1) {
         safeExit();
       }
 
@@ -134,32 +170,14 @@ class Command {
         },
         error => {
           if (error) {
-            if (directives.length === 1) {
-              printMessage(
-                formatMessage(messages.errorRunningCommand, { command: directives[0], error }),
-              );
-            } else {
-              printMessage(
-                formatMessage(messages.errorRunningCommands, { commands: directives, error }),
-              );
-            }
-            safeExit();
+            handleCommandError({ error, directives });
           }
         },
       );
 
       childProcess.on('exit', safeExit);
       childProcess.on('error', error => {
-        if (directives.length === 1) {
-          printMessage(
-            formatMessage(messages.errorRunningCommand, { command: directives[0], error }),
-          );
-        } else {
-          printMessage(
-            formatMessage(messages.errorRunningCommands, { commands: directives, error }),
-          );
-        }
-        safeExit();
+        handleCommandError({ error, directives });
       });
       process.on('SIGINT', () => {
         process.kill(-childProcess.pid, 'SIGINT');
@@ -170,7 +188,7 @@ class Command {
   /**
    * Returns the command variables
    *
-   * @returns the command variables
+   * @returns {string[]} variables - the command variables
    */
   getVariables() {
     return this.variables;
@@ -179,7 +197,7 @@ class Command {
   /**
    * Updates the command variables
    *
-   * @param string[] variables - variables to update the command variables
+   * @param {string[]} variables - variables to update the command variables
    */
   updateVariables(variables) {
     this.variables = variables;
@@ -188,7 +206,7 @@ class Command {
   /**
    * Returns the command directives
    *
-   * @returns the command directives
+   * @returns {string[]} directives - the command directives
    */
   getDirectives() {
     return this.directives;
@@ -197,7 +215,7 @@ class Command {
   /**
    * Updates the command directives
    *
-   * @param string[] directives - directives to update the command directives
+   * @param {string[]} directives - directives to update the command directives
    */
   updateDirectives(directives) {
     this.directives = directives;
@@ -206,7 +224,7 @@ class Command {
   /**
    * Returns message of the command
    *
-   * @returns message of the command
+   * @returns {string} message - message of the command
    */
   getMessage() {
     return this.message;
@@ -215,28 +233,10 @@ class Command {
   /**
    * Updates the message of the command
    *
-   * @param string message - message to update the command message
+   * @param {string} message - message to update the command message
    */
   updateMessage(message) {
     this.message = message;
-  }
-
-  /**
-   * Returns directory of the command
-   *
-   * @returns directory of the command
-   */
-  getDirectory() {
-    return this.directory;
-  }
-
-  /**
-   * Updates the directory of the command
-   *
-   * @param string directory - directory to update the command directory
-   */
-  updateDirectory(directory) {
-    this.directory = directory;
   }
 }
 

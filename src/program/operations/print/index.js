@@ -9,7 +9,7 @@ const { GlobalConfig } = require('../../../config');
 const globalMessages = require('../../../messages');
 const { safeExit } = require('../../../utility');
 const Menu = require('../../../menu');
-const Operation = require('../operation');
+const { Argument, Operation } = require('../operation');
 
 const messages = require('./messages');
 
@@ -20,7 +20,7 @@ const OPERATION_DESCRIPTION = 'print a saved script';
 /**
  * Prints a script as a yaml file
  *
- * @param scriptName - the name of the script to be printed
+ * @param {string} scriptName - the name of the script to be printed
  */
 const printScript = scriptName => {
   fse
@@ -43,6 +43,11 @@ const printScript = scriptName => {
     });
 };
 
+/**
+ * Run the print operation
+ *
+ * @param {string[]} args - arguments passed to the print operation
+ */
 const run = args => {
   GlobalConfig.load();
   if (isEmpty(GlobalConfig.getScriptNames())) {
@@ -69,16 +74,12 @@ const run = args => {
   }
 };
 
+const scriptNameArgument = new Argument({ name: 'script name', required: false });
 const operation = {
   name: OPERATION_NAME,
   flag: OPERATION_FLAG,
   description: OPERATION_DESCRIPTION,
-  args: [
-    {
-      name: 'script name',
-      required: false,
-    },
-  ],
+  args: [scriptNameArgument],
   whitelist: [],
   run,
 };
