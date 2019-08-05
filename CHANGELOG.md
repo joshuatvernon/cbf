@@ -1,4 +1,15 @@
 
+<a name="v2.0.1"></a>
+## [v2.0.1](https://github.com/joshuatvernon/cbf/compare/v2.0.0...v2.0.1)
+
+> 2019-08-05
+
+### Chore
+
+* updated yarn.lock
+* updated changelog
+
+
 <a name="v2.0.0"></a>
 ## [v2.0.0](https://github.com/joshuatvernon/cbf/compare/v1.5.0...v2.0.0)
 
