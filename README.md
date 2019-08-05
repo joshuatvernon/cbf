@@ -137,7 +137,7 @@ Commit a `cbf.yml` to your repository so developers can run `cbf` or `cbf -d` to
 
 _Can't be f#@!'d_ writing a __CBF__ script? Well guess what? You can just run `cbf` or `cbf -d` to easily run and view commands saved in the `scripts` section of your repos `package.json` file.
 
-_Note: If there is a local `cbf.yml` file it will always instead of a `package.json` file when just using `cbf` or `cbf -d`. However, you can manually choose to run the `scripts` from a `package.json` by running `cbf -j` or `cbf -dj`.
+_Note: If there is a local `cbf.yml` file it will always instead of a `package.json` file when just using `cbf` or `cbf -d`. However, you can manually choose to run the `scripts` from a `package.json` by running `cbf -j` or `cbf -dj`._
 
 ### Options
 
