@@ -1,4 +1,16 @@
 
+<a name="v2.0.0"></a>
+## [v2.0.0](https://github.com/joshuatvernon/cbf/compare/v1.5.0...v2.0.0)
+
+> 2019-08-05
+
+
+<a name="v1.5.0"></a>
+## [v1.5.0](https://github.com/joshuatvernon/cbf/compare/v1.4.1...v1.5.0)
+
+> 2019-07-31
+
+
 <a name="v1.4.1"></a>
 ## [v1.4.1](https://github.com/joshuatvernon/cbf/compare/v1.4.0...v1.4.1)
 
@@ -10,7 +22,7 @@
 
 
 <a name="v1.4.0"></a>
-## [v1.4.0](https://github.com/joshuatvernon/cbf/compare/v1.0.0...v1.4.0)
+## [v1.4.0](https://github.com/joshuatvernon/cbf/compare/v1.3.0...v1.4.0)
 
 > 2019-07-25
 
@@ -20,6 +32,18 @@
 * added prettier
 * update .travis deploy script condition
 * updated `cbf.yml` and `package.json` to automatically create annotated tags when `npm run version` is ran
+
+
+<a name="v1.3.0"></a>
+## [v1.3.0](https://github.com/joshuatvernon/cbf/compare/v1.2.0...v1.3.0)
+
+> 2019-07-25
+
+
+<a name="v1.2.0"></a>
+## [v1.2.0](https://github.com/joshuatvernon/cbf/compare/v1.0.0...v1.2.0)
+
+> 2019-07-25
 
 
 <a name="v1.0.0"></a>
@@ -113,19 +137,7 @@
 
 
 <a name="v1.1.8"></a>
-## [v1.1.8](https://github.com/joshuatvernon/cbf/compare/v1.3.0...v1.1.8)
-
-> 2019-07-19
-
-
-<a name="v1.3.0"></a>
-## [v1.3.0](https://github.com/joshuatvernon/cbf/compare/v1.2.0...v1.3.0)
-
-> 2019-07-19
-
-
-<a name="v1.2.0"></a>
-## v1.2.0
+## v1.1.8
 
 > 2019-07-19
 
