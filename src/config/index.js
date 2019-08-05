@@ -134,9 +134,11 @@ class Config {
    */
   save() {
     // Delete unsaved scripts
-    let scriptFileNames;
+    let scriptFileNames = [];
     try {
-      scriptFileNames = fse.readdirSync(SCRIPTS_DIRECTORY_PATH);
+      if (fse.pathExistsSync(SCRIPTS_DIRECTORY_PATH)) {
+        scriptFileNames = fse.readdirSync(SCRIPTS_DIRECTORY_PATH);
+      }
       scriptFileNames.forEach(scriptFileName => {
         if (
           isValidYamlFileName(scriptFileName) &&
