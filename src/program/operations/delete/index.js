@@ -9,12 +9,14 @@ const globalMessages = require('../../../messages');
 const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 const { safeExit } = require('../../../utility');
 const Menu = require('../../../menu');
-const Operation = require('../operation');
+const { Argument, Operation } = require('../operation');
 
 const messages = require('./messages');
 
 /**
  * Prompt the user whether or not the delete the current script
+ *
+ * @param {string} scriptName - name of script to be deleted
  */
 const shouldDeleteScript = scriptName => {
   const subscriber = inquirerPrompts.subscribe(
@@ -54,6 +56,11 @@ const shouldDeleteScript = scriptName => {
   });
 };
 
+/**
+ * Run delete operation
+ *
+ * @param {string[]} args - arguments passed to delete operation
+ */
 const run = args => {
   GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
@@ -80,16 +87,12 @@ const run = args => {
   }
 };
 
+const scriptNameArgument = new Argument({ name: 'script name', required: false });
 const operation = {
   name: 'delete',
-  flag: 'd',
+  flag: 'D',
   description: 'delete a previously saved script',
-  args: [
-    {
-      name: 'script name',
-      required: false,
-    },
-  ],
+  args: [scriptNameArgument],
   whitelist: [],
   run,
 };

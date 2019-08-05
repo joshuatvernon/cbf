@@ -6,10 +6,16 @@ const { printMessage, formatMessage } = require('formatted-messages');
 const { GlobalConfig } = require('../../../config');
 const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 const { safeExit } = require('../../../utility');
-const Operation = require('../operation');
+const { Operation } = require('../operation');
 
 const messages = require('./messages');
 
+/**
+ * Handle the users answer to whether or not all scripts should be deleted
+ *
+ * @param {boolean} answer        - answer to whether or not all scripts should be deleted
+ * @param {Subscriber} subscriber - subscriber to unsubscribe from after completing operation
+ */
 const handleShouldDeleteAllScriptsAnswer = (answer, subscriber) => {
   if (answer === false) {
     printMessage(formatMessage(messages.scriptsNotDeleted));
@@ -25,6 +31,9 @@ const handleShouldDeleteAllScriptsAnswer = (answer, subscriber) => {
   }
 };
 
+/**
+ * Prompt the user asking whether all scripts should be deleted
+ */
 const shouldDeleteAllScripts = () => {
   const subscriber = inquirerPrompts.subscribe(
     ({ answer }) => {
@@ -42,6 +51,9 @@ const shouldDeleteAllScripts = () => {
   });
 };
 
+/**
+ * Run the delete all operation
+ */
 const run = () => {
   GlobalConfig.load();
   if (Object.keys(GlobalConfig.getScripts()).length > 0) {

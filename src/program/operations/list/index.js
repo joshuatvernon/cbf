@@ -6,8 +6,11 @@ const { printMessage, formatMessage } = require('formatted-messages');
 const { GlobalConfig } = require('../../../config');
 const globalMessages = require('../../../messages');
 const { safeExit } = require('../../../utility');
-const Operation = require('../operation');
+const { Operation } = require('../operation');
 
+/**
+ * Run the list operation
+ */
 const run = () => {
   GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {

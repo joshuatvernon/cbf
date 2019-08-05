@@ -1,0 +1,19 @@
+{
+  "input": {
+    "options": {
+      "hello": {
+        "command": "echo 'Hello, name! Sorry I ate all the food'",
+        "variables": {
+          "name": "What's your name?",
+          "food": "What's your favourite food?"
+        }
+      },
+      "install": {
+        "command": "yarn add package",
+        "variables": {
+          "package": "What package would you like to install?"
+        }
+      }
+    }
+  }
+}

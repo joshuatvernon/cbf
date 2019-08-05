@@ -5,6 +5,7 @@ const { OperationTypes } = require('../../constants');
 const DeleteAllOperation = require('./delete-all');
 const DeleteOperation = require('./delete');
 const DocumentedOperation = require('./documented');
+const JsonOperation = require('./json');
 const ListOperation = require('./list');
 const PrintOperation = require('./print');
 const RunOperation = require('./run');
@@ -12,6 +13,13 @@ const SaveOperation = require('./save');
 const ShellOperation = require('./shell');
 
 class Operations {
+  /**
+   * Get the operation from the operation type
+   *
+   * @param {OperationTypes} operationType - the type of operation to get
+   *
+   * @returns {Operation} operation - the matching operation
+   */
   static get(operationType) {
     let operation;
     // eslint-disable-next-line default-case
@@ -24,6 +32,9 @@ class Operations {
         break;
       case OperationTypes.DOCUMENTED:
         operation = DocumentedOperation;
+        break;
+      case OperationTypes.JSON:
+        operation = JsonOperation;
         break;
       case OperationTypes.LIST:
         operation = ListOperation;

@@ -1,0 +1,11 @@
+---
+# An example default `cbf` script. This would automatically run from any repo by just running `cbf` from the cli.
+#
+# This also shows that you can nest `cbf` scripts
+example:
+  alias: "cbf -r alias.simple.yml"
+  deploy: "cbf -r deploy.simple.yml"
+  directories: "cbf -r directories.simple.yml"
+  input: "cbf -r input.simple.yml"
+  project: "cbf -r project.simple.yml"
+  setup: "cbf -r setup.simple.yml"

@@ -1,0 +1,29 @@
+{
+  "setup": {
+    "directory": "~/projects/python",
+    "message": "Setup python project",
+    "options": {
+      "step-1": {
+        "message": "Installing python...",
+        "command": "brew install python"
+      },
+      "step-2": {
+        "message": "Installing pip...",
+        "command": {
+          "1": "curl -O http://python-distribute.org/distribute_setup.py",
+          "2": "python distribute_setup.py",
+          "3": "curl -O https://raw.github.com/pypa/pip/master/contrib/get-pip.py",
+          "4": "python get-pip.py"
+        }
+      },
+      "step-3": {
+        "message": "Installing virtualenv...",
+        "command": "pip install virtualenv"
+      },
+      "step-4": {
+        "message": "Creating virtual environment...",
+        "command": "virtualenv venv"
+      }
+    }
+  }
+}

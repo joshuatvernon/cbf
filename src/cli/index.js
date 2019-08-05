@@ -11,15 +11,36 @@ const { printMessage, formatMessage } = require('formatted-messages');
 const version = require('../../version');
 const { GlobalConfig } = require('../config');
 const { Operations, OperationTypes } = require('../program');
-const { PATH_TO_LOCAL_YAML } = require('../constants');
+const {
+  ScriptTypes,
+  PROGRAM_NAME,
+  PATH_TO_LOCAL_YAML,
+  PATH_TO_LOCAL_SIMPLE_YAML,
+  PATH_TO_LOCAL_JSON,
+  PATH_TO_LOCAL_SIMPLE_JSON,
+  PATH_TO_PACKAGE_JSON,
+  PACKAGE_JSON_SCRIPTS_PROPERTY,
+} = require('../constants');
 const Parser = require('../parser');
 const { commander } = require('../shims/commander');
-const { isValidParametersLength, safeExit } = require('../utility');
+const {
+  isEmptyString,
+  isValidParametersLength,
+  safeExit,
+  isValidYamlFileName,
+  hasPackageJsonFile,
+} = require('../utility');
 const globalMessages = require('../messages');
 const Menu = require('../menu');
 
 const messages = require('./messages');
 
+/**
+ * Validate arguments length
+ *
+ * @param {Operation} operation - operation to validate arguments against
+ * @param {string[]} args       - arguments to validate
+ */
 const validateArgumentLength = (operation, args) => {
   const minimumArgumentsLength = operation.args.filter(arg => arg.required).length;
   const maximumArgumentsLength = operation.args.length;
@@ -42,11 +63,23 @@ const validateArgumentLength = (operation, args) => {
   }
 };
 
+/**
+ * Get arguments
+ *
+ * @returns {string[]} args - arguments parsed from process
+ */
 const getArguments = () => {
   const args = process.argv.slice(2);
   return args.filter(arg => arg.indexOf('--') === -1 && arg.indexOf('-') !== 0);
 };
 
+/**
+ * Return true if any of the operations passed are mutually exclusive
+ *
+ * @param {Operation[]} operations                   - operations to test for mutual exclusivity
+ *
+ * @returns {boolean} hasMutuallyExclusiveOperations - true if any of the operations are mutually exclusive
+ */
 const hasMutuallyExclusiveOperations = operations =>
   operations.some(operation =>
     operations.some(otherOperation => {
@@ -63,6 +96,11 @@ const hasMutuallyExclusiveOperations = operations =>
     }),
   );
 
+/**
+ * Get operations from commander
+ *
+ * @returns {Operation[]} operations - operations parsed from commander
+ */
 const getOperationsFromCommander = () => {
   const operations = [];
   Object.keys(OperationTypes).forEach(operationType => {
@@ -74,19 +112,48 @@ const getOperationsFromCommander = () => {
   return operations;
 };
 
-const hasLocalCbfFile = () => fse.existsSync(PATH_TO_LOCAL_YAML);
+/**
+ * Return the local cbf file if it exists
+ *
+ * @returns {string} localCbfFile - local cbf file or an empty string if none exists
+ */
+const getLocalCbfFileName = () => {
+  if (fse.pathExistsSync(PATH_TO_LOCAL_JSON)) {
+    return PATH_TO_LOCAL_JSON;
+  }
+  if (fse.pathExistsSync(PATH_TO_LOCAL_SIMPLE_JSON)) {
+    return PATH_TO_LOCAL_SIMPLE_JSON;
+  }
+  if (fse.pathExistsSync(PATH_TO_LOCAL_YAML)) {
+    return PATH_TO_LOCAL_YAML;
+  }
+  if (fse.pathExistsSync(PATH_TO_LOCAL_SIMPLE_YAML)) {
+    return PATH_TO_LOCAL_SIMPLE_YAML;
+  }
+  return '';
+};
 
-const loadLocalCbfFile = () => {
-  const script = Parser.getScript(PATH_TO_LOCAL_YAML);
+/**
+ * Load a local cbf file into memory and run it
+ *
+ * @param {string} fileName - name of the local cbf file to load and run
+ */
+const loadAndRunLocalCbfFile = fileName => {
+  const script = isValidYamlFileName(fileName)
+    ? Parser.getScriptFromYamlFile(fileName)
+    : Parser.getScriptFromJsonFile({ fileName });
   printMessage(
     formatMessage(globalMessages.loadedScript, {
       scriptName: script.getName(),
-      yamlFileName: path.basename(PATH_TO_LOCAL_YAML),
+      fileName: path.basename(fileName),
     }),
   );
   script.run();
 };
 
+/**
+ * Run menu if there are any saved scripts and help otherwise
+ */
 const runMenuOrHelp = () => {
   GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
@@ -101,14 +168,36 @@ const runMenuOrHelp = () => {
   }
 };
 
+/**
+ * Run scripts from package.json
+ */
+const runScriptsFromPackageJson = () => {
+  const script = Parser.getScriptFromJsonFile({
+    fileName: PATH_TO_PACKAGE_JSON,
+    scriptStartingKey: PACKAGE_JSON_SCRIPTS_PROPERTY,
+    scriptType: ScriptTypes.SIMPLE,
+  });
+  printMessage(formatMessage(globalMessages.runningScriptsFromPackageJson));
+  script.run();
+};
+
+/**
+ * Handle when no operations are passed to commander by running from local cbf, package.json or running the menu or help
+ */
 const handleNoOperations = () => {
-  if (hasLocalCbfFile()) {
-    loadLocalCbfFile();
+  const localCbfFileName = getLocalCbfFileName();
+  if (!isEmptyString(localCbfFileName)) {
+    loadAndRunLocalCbfFile(localCbfFileName);
+  } else if (hasPackageJsonFile()) {
+    runScriptsFromPackageJson();
   } else {
     runMenuOrHelp();
   }
 };
 
+/**
+ * Handle arguments passed to commander
+ */
 const handleArguments = () => {
   const operations = getOperationsFromCommander();
 
@@ -136,9 +225,19 @@ const handleArguments = () => {
   }
 };
 
+/**
+ * Format the arguments for commander
+ *
+ * @param {Argument[]} args        - arguments to be formatted
+ *
+ * @returns {string} formattedArgs - formatted arguments
+ */
 const formatArguments = args =>
   args.map(arg => (arg.required ? `<${arg.name}>` : `[${arg.name}]`)).join(' ');
 
+/**
+ * Add formatted operations to commander
+ */
 const addOperationsToCommander = () => {
   Object.keys(OperationTypes).forEach(operationType => {
     const { flag, name, args, description } = Operations.get(OperationTypes[operationType]);
@@ -157,9 +256,17 @@ const addOperationsToCommander = () => {
   });
 };
 
+/**
+ * Initialise commander
+ */
 const init = () => {
   commander.version(version);
-  commander.usage('[options]');
+  commander.name(
+    formatMessage(messages.name, {
+      programName: PROGRAM_NAME,
+    }),
+  );
+  commander.usage(formatMessage(messages.usage));
   addOperationsToCommander();
   commander.parse(process.argv);
   handleArguments();

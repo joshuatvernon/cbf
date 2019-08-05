@@ -1,0 +1,19 @@
+{
+  "deploy": {
+    "directory": "~/projects/example",
+    "options": {
+      "step-1": {
+        "message": "Setting up S3...",
+        "command": "aws s3 mb s3://codedeploydemobucket"
+      },
+      "step-2": {
+        "message": "Creating application...",
+        "command": "aws deploy create-application --application-name HelloWorld_App"
+      },
+      "step-3": {
+        "message": "Deploying application...",
+        "command": "aws deploy push --application-name HelloWorld_App --s3-location s3://codedeploydemobucket/HelloWorld_App.zip --ignore-hidden-files"
+      }
+    }
+  }
+}

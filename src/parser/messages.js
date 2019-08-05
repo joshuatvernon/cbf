@@ -7,6 +7,9 @@ const messages = {
   incorrectlyFormattedVariables: {
     message: 'Variables are not in the correct format',
   },
+  errorParsingJsonFile: {
+    message: `\nError parsing <primary>{jsonFileName}<primary> json file.\n\n<error>{error}<error>`,
+  },
 };
 
 module.exports = messages;

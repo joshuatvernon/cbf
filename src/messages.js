@@ -36,10 +36,19 @@ const messages = {
     message: '',
   },
   loadedScript: {
-    message: `Running <primary>{scriptName}<primary> script from <secondary>{yamlFileName}<secondary> file\n`,
+    message: `Running <primary>{scriptName}<primary> script from <secondary>{fileName}<secondary> file\n`,
   },
   invalidYamlFile: {
-    message: '<error>{yamlFileName}<error> is an invalid yaml filename',
+    message: '<error>{fileName}<error> is an invalid yaml filename',
+  },
+  invalidJsonFile: {
+    message: '<error>{fileName}<error> is an invalid json filename',
+  },
+  invalidScriptFile: {
+    message: '<error>{fileName}<error> is an invalid script filename',
+  },
+  runningScriptsFromPackageJson: {
+    message: `Running <secondary>scripts<secondary> from <primary>package.json<primary> file\n`,
   },
 };
 

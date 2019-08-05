@@ -5,52 +5,83 @@ const path = require('path');
 const isEmpty = require('lodash/isEmpty');
 const { printMessage, formatMessage } = require('formatted-messages');
 
-const { GlobalConfig } = require('../../../config');
 const Parser = require('../../../parser');
 const globalMessages = require('../../../messages');
-const { safeExit, isValidYamlFileName } = require('../../../utility');
+const { GlobalConfig } = require('../../../config');
+const { safeExit, isValidYamlFileName, isValidJsonFileName } = require('../../../utility');
 const Menu = require('../../../menu');
-const Operation = require('../operation');
+const { Argument, Operation } = require('../operation');
 
-const loadAndRunCbfFile = yamlFileName => {
-  const script = Parser.getScript(yamlFileName);
+/**
+ * Load and run the cbf file
+ *
+ * @param {string} fileName - name of the file to load and run
+ */
+const loadAndRunScriptFile = fileName => {
+  let script;
+  if (isValidYamlFileName(fileName)) {
+    script = Parser.getScriptFromYamlFile(fileName);
+  } else if (isValidJsonFileName(fileName)) {
+    script = Parser.getScriptFromJsonFile({ fileName });
+  } else {
+    printMessage(formatMessage(globalMessages.invalidScriptFile, { fileName }));
+  }
   printMessage(
     formatMessage(globalMessages.loadedScript, {
       scriptName: script.getName(),
-      yamlFileName: path.basename(yamlFileName),
+      fileName: path.basename(fileName),
     }),
   );
   script.run();
 };
 
+/**
+ * Run the run operation
+ *
+ * @param {string[]} args - arguments passed to the run operation
+ */
 const run = args => {
   GlobalConfig.load();
-  if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
+  if (isEmpty(GlobalConfig.getScriptNames())) {
+    // No saved scripts
     if (isEmpty(args)) {
+      // No saved scripts and no file name passed
       printMessage(formatMessage(globalMessages.noSavedScripts));
       safeExit();
     } else {
-      const yamlFilename = args[0];
-      loadAndRunCbfFile(yamlFilename);
+      // Arguments passed
+      const filename = args[0];
+      if (isValidYamlFileName(filename) || isValidJsonFileName(filename)) {
+        // Argument is valid yaml or json file -- load and run script
+        loadAndRunScriptFile(filename);
+      } else {
+        // Argument is NOT a valid yaml or json file
+        printMessage(formatMessage(globalMessages.invalidScriptFile, { filename }));
+      }
     }
   } else if (isEmpty(args)) {
+    // No arguments -- run menu
     const menu = new Menu({
       operationName: operation.name,
       operationRun: operation.run,
     });
     menu.run();
   } else {
-    const scriptNameOrYamlFileName = args[0];
-    if (isValidYamlFileName(scriptNameOrYamlFileName)) {
-      loadAndRunCbfFile(scriptNameOrYamlFileName);
+    // Config has scripts and an argument was passed
+    const scriptNameOrFileName = args[0];
+    if (isValidYamlFileName(scriptNameOrFileName) || isValidJsonFileName(scriptNameOrFileName)) {
+      // Argument is valid yaml or json file -- load and run script
+      loadAndRunScriptFile(scriptNameOrFileName);
     } else {
-      const script = GlobalConfig.getScript(scriptNameOrYamlFileName);
+      const script = GlobalConfig.getScript(scriptNameOrFileName);
       if (script) {
+        // Argument is valid script name -- run script
         script.run();
       } else {
+        // Argument is NOT a valid script name
         printMessage(
           formatMessage(globalMessages.scriptDoesNotExist, {
-            scriptName: scriptNameOrYamlFileName,
+            scriptName: scriptNameOrFileName,
           }),
         );
         safeExit();
@@ -59,16 +90,12 @@ const run = args => {
   }
 };
 
+const scriptNameArgument = new Argument({ name: 'script name', required: false });
 const operation = {
   name: 'run',
   flag: 'r',
   description: 'run a previously saved script',
-  args: [
-    {
-      name: 'script name',
-      required: false,
-    },
-  ],
+  args: [scriptNameArgument],
   whitelist: ['documented'],
   run,
 };

@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 
 const cloneDeep = require('lodash/cloneDeep');
-const isEmpty = require('lodash/isEmpty');
-const isString = require('lodash/isString');
+const noop = require('lodash/noop');
 
-const isEmptyString = s => isString(s) && isEmpty(s);
-
-const { OperatingModes, BACK_COMMAND, QUIT_COMMAND, DEFAULT_SHELL } = require('../../constants');
+const {
+  OperatingModes,
+  BACK_COMMAND,
+  QUIT_COMMAND,
+  DEFAULT_SHELL,
+  KEY_SEPARATOR,
+} = require('../../constants');
 const { CurrentOperatingMode } = require('../../operating-mode');
 const {
+  isEmptyString,
   endsWithWhitespace,
   getParentKey,
   replaceWhitespace,
@@ -24,13 +28,29 @@ const Directory = require('./directory');
 const Option = require('./option');
 
 class Script {
-  constructor({ name = '', options = {}, commands = {}, directories = {} } = {}) {
+  /**
+   * Construct a script
+   *
+   * @param {object} param                  - object parameter
+   * @param {string} param.name             - the scripts name
+   * @param {Option[]} param.options        - the scripts options
+   * @param {Command[]} param.commands      - the scripts commands
+   * @param {Directory[]} param.directories - the scripts directories
+   */
+  constructor({ name = '', options = [], commands = [], directories = [] } = {}) {
     this.name = name;
     this.options = options;
     this.commands = commands;
     this.directories = directories;
   }
 
+  /**
+   * Return a copy of the script
+   *
+   * @param {Script} script         - script to be copied
+   *
+   * @returns {Script} copiedScript - copied script
+   */
   static copy(script) {
     if (!(script instanceof Script)) {
       throwError(
@@ -43,87 +63,64 @@ class Script {
   /**
    * Runs the script
    *
-   * @param string shell - the shell to run the command within
+   * @param {string} shell - the shell to run the command within
    */
   run(shell = DEFAULT_SHELL) {
-    return new Promise(() => {
-      let key = this.getName();
+    let key = this.getName();
 
-      const subscriber = inquirerPrompts.subscribe(
-        ({ answer }) => {
-          switch (getUndocumentedChoice(answer)) {
-            case QUIT_COMMAND:
-              subscriber.unsubscribe();
-              safeExit();
-              break;
-            case BACK_COMMAND: {
-              key = getParentKey(key);
-              let option = this.getOption(key);
-              if (!option.getMessage()) {
-                // Option didn't have a message; set the default message
-                option = Option.copy(option);
-                option.updateMessage('Choose an option');
-              }
-              prompts.next(option);
-              break;
-            }
-            default:
-              // eslint-disable-next-line no-param-reassign
-              answer = getUndocumentedChoice(answer);
-              if (endsWithWhitespace(answer)) {
-                // eslint-disable-next-line no-param-reassign
-                answer = replaceWhitespace(answer, '.');
-              }
-              key = `${key}.${answer}`;
-              if (this.getOption(key)) {
-                let option = this.getOption(key);
-                if (!option.getMessage()) {
-                  // Option didn't have a message; set the default message
-                  option = Option.copy(option);
-                  option.updateMessage('Choose an option');
-                }
-
-                prompts.next(option);
-              } else if (this.getCommand(key)) {
-                const command = this.getCommand(key);
-                const directory = this.getDirectoryOrClosestParentDirectory(key);
-                command.run({
-                  shell,
-                  directory,
-                });
-              }
+    const subscriber = inquirerPrompts.subscribe(
+      ({ answer }) => {
+        switch (getUndocumentedChoice(answer)) {
+          case QUIT_COMMAND:
+            subscriber.unsubscribe();
+            safeExit();
+            break;
+          case BACK_COMMAND: {
+            key = getParentKey(key);
+            prompts.next(this.getOption(key));
+            break;
           }
-        },
-        error => {
-          // eslint-disable-next-line no-console
-          console.warn(error);
-        },
-        () => {},
-      );
-
-      if (this.getOption(key)) {
-        let option = this.getOption(key);
-        if (!option.getMessage()) {
-          // Option didn't have a message; set the default message
-          option = Option.copy(option);
-          option.updateMessage('Choose an option');
+          default:
+            // eslint-disable-next-line no-param-reassign
+            answer = getUndocumentedChoice(answer);
+            if (endsWithWhitespace(answer)) {
+              // eslint-disable-next-line no-param-reassign
+              answer = replaceWhitespace(answer, KEY_SEPARATOR);
+            }
+            key = `${key}.${answer}`;
+            if (this.getOption(key)) {
+              prompts.next(this.getOption(key));
+            } else if (this.getCommand(key)) {
+              const command = this.getCommand(key);
+              const directory = this.getDirectoryOrClosestParentDirectory(key);
+              command.run({
+                shell,
+                directory,
+              });
+            }
         }
-        prompts.next(option);
-      } else if (this.getCommand(key)) {
-        const command = this.getCommand(key);
-        const directory = this.getDirectoryOrClosestParentDirectory(key);
-        command.run({
-          shell,
-          directory,
-        });
-      }
-    });
+      },
+      noop,
+      noop,
+    );
+
+    const option = this.getOption(key);
+    if (option) {
+      prompts.next(option);
+    } else if (this.getCommand(key)) {
+      const command = this.getCommand(key);
+      const directory = this.getDirectoryOrClosestParentDirectory(key);
+      command.run({
+        shell,
+        directory,
+      });
+    }
   }
 
   /**
    * Return the script name
    *
-   * @returns script name
+   * @returns {string} script name
    */
   getName() {
     return this.name;
@@ -132,7 +129,7 @@ class Script {
   /**
    * Update the script name
    *
-   * @param string name - script name
+   * @param {string} name - script name
    */
   updateName(name) {
     this.name = name;
@@ -141,7 +138,7 @@ class Script {
   /**
    * Return options in the script
    *
-   * @returns script options
+   * @returns {Option[]} script options
    */
   getOptions() {
     return this.options;
@@ -150,7 +147,7 @@ class Script {
   /**
    * Updates the scripts options
    *
-   * @param Option[] options - script options
+   * @param {Option[]} options - script options
    */
   updateOptions(options) {
     this.options = options;
@@ -159,7 +156,9 @@ class Script {
   /**
    * Return a specific option if it exists in the script
    *
-   * @returns a specific option
+   * @param {string} optionKey - option key to use to look for option in the script
+   *
+   * @returns {Option} option  - a specific option
    */
   getOption(optionKey) {
     const option = this.options[optionKey];
@@ -168,12 +167,12 @@ class Script {
       // Add documentation to option
       const documentedOption = Option.copy(option);
       const documented = CurrentOperatingMode.get() === OperatingModes.RUNNING_WITH_DOCUMENTATION;
-      const documentedChoices = getDocumentedChoices(
-        this,
+      const documentedChoices = getDocumentedChoices({
         optionKey,
-        documentedOption.getChoices(),
         documented,
-      );
+        script: this,
+        choices: documentedOption.getChoices(),
+      });
       documentedOption.updateChoices(documentedChoices);
 
       return documentedOption;
@@ -185,8 +184,9 @@ class Script {
   /**
    * Add an option to the script
    *
-   * @param string optionKey - the key of the option to be added to the script
-   * @param Option option - the option to be added to the script
+   * @param {object} param           - object parameter
+   * @param {string} param.optionKey - the key of the option to be added to the script
+   * @param {Option} param.option    - the option to be added to the script
    */
   addOption({ optionKey, option }) {
     if (optionKey in this.options) {
@@ -198,8 +198,9 @@ class Script {
   /**
    * Update an option in the script
    *
-   * @param string optionKey - the key of the option to be updated in the script
-   * @param Option option - the option to be updated in the script
+   * @param {object} param           - object parameter
+   * @param {string} param.optionKey - the key of the option to be updated in the script
+   * @param {Option} param.option    - the option to be updated in the script
    */
   updateOption({ optionKey, option }) {
     this.options[optionKey] = option;
@@ -208,16 +209,27 @@ class Script {
   /**
    * Remove an option from the script
    *
-   * @param string optionKey - the key of the option to be removed from the script
+   * @param {string} optionKey - the key of the option to be removed from the script
    */
   removeOption(optionKey) {
     delete this.options[optionKey];
   }
 
   /**
+   * Return true if the script has the option
+   *
+   * @param {string} optionKey    - the option key to check for in the script
+   *
+   * @returns {boolean} hasOption - true if the script has an option with the same option key and false otherwise
+   */
+  hasOption(optionKey) {
+    return Object.keys(this.options).includes(optionKey);
+  }
+
+  /**
    * Return commands in the script
    *
-   * @returns script commands
+   * @returns {Command[]} commands - script commands
    */
   getCommands() {
     return this.commands;
@@ -226,7 +238,7 @@ class Script {
   /**
    * Updates the scripts commands
    *
-   * @param Command[] commands - script commands
+   * @param {Command[]} commands - script commands
    */
   updateCommands(commands) {
     this.commands = commands;
@@ -235,7 +247,9 @@ class Script {
   /**
    * Return a specific command if it exists in the script
    *
-   * @returns a specific command
+   * @param {string} commandKey - command key to use to look for command in script
+   *
+   * @returns {Command} command - a specific command
    */
   getCommand(commandKey) {
     return this.commands[commandKey];
@@ -244,8 +258,9 @@ class Script {
   /**
    * Add an command to the script
    *
-   * @param string commandKey - the key of the command to be added to the script
-   * @param Command command - the command to be added to the script
+   * @param {object} param            - object parameter
+   * @param {string} param.commandKey - the key of the command to be added to the script
+   * @param {Command} param.command   - the command to be added to the script
    */
   addCommand({ commandKey, command }) {
     if (commandKey in this.commands) {
@@ -257,8 +272,9 @@ class Script {
   /**
    * Update an command in the script
    *
-   * @param string commandKey - the key of the command to be updated in the script
-   * @param Command command - the command to be updated in the script
+   * @param {object} param            - object parameter
+   * @param {string} param.commandKey - the key of the command to be updated in the script
+   * @param {Command} param.command   - the command to be updated in the script
    */
   updateCommand({ commandKey, command }) {
     this.commands[commandKey] = command;
@@ -267,7 +283,7 @@ class Script {
   /**
    * Remove an command from the script
    *
-   * @param string commandKey - the key of the command to be removed from the script
+   * @param {string} commandKey - the key of the command to be removed from the script
    */
   removeCommand(commandKey) {
     delete this.commands[commandKey];
@@ -276,7 +292,7 @@ class Script {
   /**
    * Return directories in the script
    *
-   * @returns script directories
+   * @returns {Directory[]} directories - script directories
    */
   getDirectories() {
     return this.directories;
@@ -285,7 +301,7 @@ class Script {
   /**
    * Updates the scripts directories
    *
-   * @param Directory{} directories - script directories
+   * @param {Directory[]} directories - script directories
    */
   updateDirectories(directories) {
     this.directories = directories;
@@ -294,12 +310,13 @@ class Script {
   /**
    * Return the directory or closest parent directory
    *
-   * @param directoryKey - the directory key used to find the directory or closest parent
-   * directory to run the command in
+   * @param {string} directoryKey                           - the directory key used to find the directory or closest parent directory to run the command in
+   *
+   * @returns {Directory} closestDirectoryOrParentDirectory - closest directory or parent directory
    */
   getDirectoryOrClosestParentDirectory(directoryKey) {
     if (isEmptyString(directoryKey)) {
-      return '';
+      return new Directory('');
     }
 
     const directory = this.getDirectory(directoryKey);
@@ -313,7 +330,9 @@ class Script {
   /**
    * Return a specific directory if it exists in the script
    *
-   * @returns a specific directory
+   * @param {string} directoryKey   - directory key to look for directory in script with
+   *
+   * @returns {Directory} directory - a specific directory
    */
   getDirectory(directoryKey) {
     return this.directories[directoryKey];
@@ -322,8 +341,9 @@ class Script {
   /**
    * Add an directory to the script
    *
-   * @param string directoryKey - the key of the directory to be added to the script
-   * @param Directory directory - the directory to be added to the script
+   * @param {object} param              - object parameter
+   * @param {string} param.directoryKey - the key of the directory to be added to the script
+   * @param {Directory} param.directory - the directory to be added to the script
    */
   addDirectory({ directoryKey, directory }) {
     if (directoryKey in this.directories) {
@@ -335,8 +355,9 @@ class Script {
   /**
    * Update an directory in the script
    *
-   * @param string directoryKey - the key of the directory to be updated in the script
-   * @param Directory directory - the directory to be updated in the script
+   * @param {object} param              - object parameter
+   * @param {string} param.directoryKey - the key of the directory to be updated in the script
+   * @param {Directory} param.directory - the directory to be updated in the script
    */
   updateDirectory({ directoryKey, directory }) {
     this.directories[directoryKey] = directory;
@@ -345,7 +366,7 @@ class Script {
   /**
    * Remove an directory from the script
    *
-   * @param string directoryKey - the key of the directory to be removed from the script
+   * @param {string} directoryKey - the key of the directory to be removed from the script
    */
   removeDirectory(directoryKey) {
     delete this.directories[directoryKey];

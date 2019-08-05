@@ -3,9 +3,9 @@
 const { PROGRAM_NAME, GITHUB_LINK } = require('../../../constants');
 
 const messages = {
-  noYamlFile: {
+  noScriptFile: {
     message:
-      'No path to yaml file passed.\n\nTry rerunning with <primary>{programName} -s [path to yaml file]<primary>',
+      'No path to yaml or json file passed.\n\nTry rerunning with <primary>{programName} -s [path to script file]<primary>',
     defaultOptions: {
       programName: PROGRAM_NAME,
     },
@@ -19,7 +19,7 @@ const messages = {
   },
   errorSavingScript: {
     message:
-      'An error happened while trying to save <primary>{scriptName}<primary> script\n\n<red>{error}<error>\n\nRun <primary>{programName} -s {scriptName}<primary> to try again or raise a bug request at <primary>{githubLink}<primary>',
+      'An error happened while trying to save <primary>{scriptName}<primary> script\n\n<error>{error}<error>\n\nRun <primary>{programName} -s {scriptName}<primary> to try again or raise a bug request at <primary>{githubLink}<primary>',
     defaultOptions: {
       programName: PROGRAM_NAME,
       githubLink: GITHUB_LINK,
