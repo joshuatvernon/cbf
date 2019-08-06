@@ -9,6 +9,7 @@
 * [Deploy](./simple/deploy.simple.json) - A script to show how __CBF__ could help a contributor deploy code.
 * [Directories](./simple/directories.simple.json) - A script to show how __CBF__ runs commands in declared directories.
 * [Project](./simple/project.simple.json) - A script to show how __CBF__ can run a `cbf.yml` script from within a project to help contributors to learn commands specific to a repository.
+* [Setup](./simple/setup.simple.json) - A script to show how __CBF__ could be used to onboard contributors to a project by helping them with the one time task of getting their development environment set up.
 
 ### YAML
 
