@@ -1,6 +1,6 @@
 # Example scripts
 
-## Simple
+## [Simple](./simple)
 
 ### JSON
 
@@ -18,7 +18,7 @@
 * [Directories](./simple/directories.simple.yml) - A script to show how __CBF__ runs commands in declared directories.
 * [Setup](./simple/setup.simple.yml) - A script to show how __CBF__ could be used to onboard contributors to a project by helping them with the one time task of getting their development environment set up.
 
-## Advanced
+## [Advanced](./advanced)
 
 ### JSON
 
