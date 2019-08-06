@@ -4,7 +4,7 @@
 
 ### JSON
 
-#### [cbf](./simple/cbf.simple.json)
+#### [Cbf](./simple/cbf.simple.json)
 A script to show how __CBF__ will just run if you run `cbf` in a directory.
 
 #### [Alias](./simple/alias.simple.json)
