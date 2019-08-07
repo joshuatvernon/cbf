@@ -25,8 +25,7 @@ const messages = {
     },
   },
   unknownError: {
-    message:
-      'There was an unknown error; feel free to report this at <primary>{npmLink}<primary> or <primary>{githubLink}<primary>',
+    message: `Sorry, an unknown error occurred!\n\nPlease report this at <primary>{githubLink}<primary> or <primary>{npmLink}<primary>`,
     defaultOptions: {
       npmLink: NPM_LINK,
       githubLink: GITHUB_LINK,
