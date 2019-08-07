@@ -101,6 +101,29 @@ const addCommandToScript = ({ script, file, fileName, key }) => {
 };
 
 /**
+ * Throws an error and stops parsing an advanced script if a script key is used as an option
+ *
+ * @param {object} param            - object parameter
+ * @param {string} param.fileName   - name of file being parsed
+ * @param {string} param.optionsKey - option key to check
+ * @param {string} param.parentKey  - parent key to use in error message if invalid
+ */
+const checkIfOptionKeyIsValid = ({ fileName, optionsKey, parentKey }) => {
+  Object.values(ScriptKeys).forEach(scriptKey => {
+    if (optionsKey === scriptKey) {
+      printMessage(
+        formatMessage(messages.scriptKeyUsedAsOption, {
+          fileName,
+          parentKey,
+          scriptKey,
+        }),
+      );
+      forceExit();
+    }
+  });
+};
+
+/**
  * Add an option to the script
  *
  * @param {object} param          - object parameter
@@ -114,6 +137,7 @@ const addOptionToScript = ({ script, file, fileName, key }) => {
   const choices = [];
 
   optionsKeys.forEach(optionsKey => {
+    checkIfOptionKeyIsValid({ fileName, optionsKey, parentKey: key });
     // eslint-disable-next-line no-use-before-define
     parseAdvancedScript({
       script,
@@ -162,7 +186,7 @@ const parseAdvancedScript = ({ script, file, fileName, key }) => {
   }
   if (ScriptKeys.COMMAND in file) {
     addCommandToScript({ script, file, fileName, key });
-  } else if (ScriptKeys.OPTION in file) {
+  } else if (ScriptKeys.OPTIONS in file) {
     addOptionToScript({ script, file, fileName, key });
   }
 };

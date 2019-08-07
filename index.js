@@ -3,7 +3,8 @@
 /* eslint-disable */
 const { uncaughtExceptionListener, unhandledRejectionListener } = require('./src/utility');
 
-// Add exception and rejection listeners which will print an unknown error if in prod env or a stack trace if in test env
+// Add exception and rejection listeners before anything else is run which will print an unknown
+// error if in prod env or a stack trace if in test env
 uncaughtExceptionListener();
 unhandledRejectionListener();
 /* eslint-enable */
