@@ -11,6 +11,8 @@ const isString = require('lodash/isString');
 const isEmpty = require('lodash/isEmpty');
 const isPlainObject = require('lodash/isPlainObject');
 
+const { Env } = require('../constants');
+const globalMessages = require('../messages');
 const {
   ScriptTypes,
   SCRIPTS_DIRECTORY_PATH,
@@ -40,8 +42,12 @@ const isEmptyString = variable => isString(variable) && isEmpty(variable);
  */
 const uncaughtExceptionListener = () => {
   process.on('uncaughtException', error => {
-    // eslint-disable-next-line no-console
-    console.error('Uncaught Exception thrown\n', error);
+    if (process.env.NODE_ENV === Env.TEST) {
+      // eslint-disable-next-line no-console
+      console.error('Uncaught Exception thrown\n', error);
+    } else {
+      printMessage(formatMessage(globalMessages.unknownError));
+    }
     process.exit(1);
   });
 };
@@ -51,8 +57,12 @@ const uncaughtExceptionListener = () => {
  */
 const unhandledRejectionListener = () => {
   process.on('unhandledRejection', (reason, p) => {
-    // eslint-disable-next-line no-console
-    console.error('Unhandled Rejection at promise\n', p, reason);
+    if (process.env.NODE_ENV === Env.TEST) {
+      // eslint-disable-next-line no-console
+      console.error('Unhandled Rejection at promise\n', p, reason);
+    } else {
+      printMessage(formatMessage(globalMessages.unknownError));
+    }
     process.exit(1);
   });
 };
