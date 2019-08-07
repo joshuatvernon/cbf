@@ -18,7 +18,7 @@ const PROGRAM_NAME = 'cbf';
 const ScriptKeys = Object.freeze({
   DIRECTORY: 'directory',
   COMMAND: 'command',
-  OPTION: 'options',
+  OPTIONS: 'options',
   MESSAGE: 'message',
   VARIABLES: 'variables',
 });
