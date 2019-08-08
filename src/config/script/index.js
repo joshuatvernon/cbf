@@ -2,6 +2,7 @@
 
 const cloneDeep = require('lodash/cloneDeep');
 const noop = require('lodash/noop');
+const { printMessage, formatMessage } = require('formatted-messages');
 
 const {
   OperatingModes,
@@ -26,6 +27,7 @@ const { prompts, inquirerPrompts } = require('../../shims/inquirer');
 const Command = require('./command');
 const Directory = require('./directory');
 const Option = require('./option');
+const messages = require('./messages');
 
 class Script {
   /**
@@ -97,6 +99,14 @@ class Script {
                 shell,
                 directory,
               });
+            } else {
+              printMessage(
+                formatMessage(messages.answerNotFoundErrorWhileRunningScript, {
+                  scriptName: this.getName(),
+                  answer,
+                }),
+              );
+              safeExit();
             }
         }
       },

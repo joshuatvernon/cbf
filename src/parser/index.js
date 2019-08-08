@@ -263,6 +263,7 @@ const addCommandToSimpleScript = ({ script, file, key, keys }) => {
   const re = new RegExp(SIMPLE_SCRIPT_OPTION_SEPARATOR, 'g');
   let commandKey = `${script.getName()}.${key.replace(re, KEY_SEPARATOR)}`;
   if (isAnOptionAndCommand({ key, keys })) {
+    // Command is also an option, store the command one level deeper so it will be in the correct options choices list
     commandKey += `${KEY_SEPARATOR}${key}`;
   }
   const directive = file[key];
