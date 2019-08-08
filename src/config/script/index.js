@@ -10,7 +10,7 @@ const {
   DEFAULT_SHELL,
   KEY_SEPARATOR,
 } = require('../../constants');
-const { CurrentOperatingMode } = require('../../operating-mode');
+const { CurrentOperatingModes } = require('../../operating-modes');
 const {
   isEmptyString,
   endsWithWhitespace,
@@ -166,7 +166,7 @@ class Script {
     if (option) {
       // Add documentation to option
       const documentedOption = Option.copy(option);
-      const documented = CurrentOperatingMode.get() === OperatingModes.RUNNING_WITH_DOCUMENTATION;
+      const documented = CurrentOperatingModes.includes(OperatingModes.RUNNING_WITH_DOCUMENTATION);
       const documentedChoices = getDocumentedChoices({
         optionKey,
         documented,

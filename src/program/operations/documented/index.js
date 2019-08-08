@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 
 const { OperatingModes } = require('../../../constants');
-const { CurrentOperatingMode } = require('../../../operating-mode');
+const { CurrentOperatingModes } = require('../../../operating-modes');
 const { Operation } = require('../operation');
 
 /**
  * Run the documented operation
  */
 const run = () => {
-  CurrentOperatingMode.set(OperatingModes.RUNNING_WITH_DOCUMENTATION);
+  CurrentOperatingModes.add(OperatingModes.RUNNING_WITH_DOCUMENTATION);
 };
 
 const operation = {
