@@ -11,6 +11,7 @@ const OperatingModes = Object.freeze({
   DEFAULT: Symbol('default'),
   RUNNING: Symbol('running'),
   RUNNING_WITH_DOCUMENTATION: Symbol('running-with-documentation'),
+  RUNNING_PACKAGE_JSON: Symbol('running-package-json'),
 });
 
 // Script

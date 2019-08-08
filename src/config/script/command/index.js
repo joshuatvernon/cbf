@@ -5,6 +5,7 @@ const { spawn } = require('child_process');
 const fse = require('fs-extra');
 const noop = require('lodash/noop');
 const cloneDeep = require('lodash/cloneDeep');
+const isEmpty = require('lodash/isEmpty');
 const { printMessage, formatMessage } = require('formatted-messages');
 
 const { DEFAULT_SHELL, PROGRAM_NAME } = require('../../../constants');
@@ -39,14 +40,16 @@ class Command {
   /**
    * Construct a command
    *
-   * @param {object} param              - object parameter
-   * @param {string[]} param.variables  - the commands variables
-   * @param {string[]} param.directives - the commands directives
-   * @param {string} param.message      - the commands message
+   * @param {object} param                    - object parameter
+   * @param {string[]} param.variables        - the commands variables
+   * @param {string[]} param.directives       - the commands directives
+   * @param {string[]} param.hiddenDirectives - the commands hidden directives
+   * @param {string} param.message            - the commands message
    */
-  constructor({ variables = [], directives = [], message = '' } = {}) {
+  constructor({ variables = [], directives = [], hiddenDirectives = [], message = '' } = {}) {
     this.variables = variables;
     this.directives = directives;
+    this.hiddenDirectives = hiddenDirectives;
     if (!isEmptyString(message)) {
       this.message = message;
     }
@@ -129,8 +132,6 @@ class Command {
     }
 
     this.updateDirectivesWithVariables().then(() => {
-      // Join directives
-      const directive = this.getDirectives().join(' && ');
       if (this.getMessage()) {
         printMessage(formatMessage(messages.commandMessage, { message: this.getMessage() }));
       }
@@ -154,6 +155,11 @@ class Command {
       } else if (!directory && directives.length > 1) {
         printMessage(formatMessage(messages.runCommands, { commands: directives }));
       }
+
+      // Join directives
+      const directive = !isEmpty(this.getHiddenDirectives())
+        ? this.getHiddenDirectives().join(' && ')
+        : this.getDirectives().join(' && ');
 
       // If the directive will run `cbf` we safe exit the parent running `cbf`
       if (directive.indexOf(PROGRAM_NAME) !== -1) {
@@ -219,6 +225,24 @@ class Command {
    */
   updateDirectives(directives) {
     this.directives = directives;
+  }
+
+  /**
+   * Returns the command hidden directives used to store directives to be run but not documented
+   *
+   * @returns {string[]} hiddenDirectives - directives to be ran but not documented
+   */
+  getHiddenDirectives() {
+    return this.hiddenDirectives;
+  }
+
+  /**
+   * Updates the command hidden directives
+   *
+   * @param {string[]} hiddenDirectives - directives to be ran but no documented
+   */
+  updateHiddenDirectives(hiddenDirectives) {
+    this.hiddenDirectives = hiddenDirectives;
   }
 
   /**

@@ -1,11 +1,12 @@
 {
   "name": "cbf",
-  "version": "2.0.5",
+  "version": "2.0.6",
   "description": "A package for creating scripts to store and run your most commonly used CLI commands for a repo or just in general",
   "main": "index.js",
   "scripts": {
     "refresh": "rm -rf ./node_modules ./package-lock.json && npm install",
     "lint": "eslint \"./**/*.js\"",
+    "lint:fix": "eslint \"./**/*.js\" --fix",
     "circular": "madge --circular ./index.js",
     "format": "prettier --write \"**/*.js\" -l \"warn\" && standard --fix",
     "test": "mocha src --file ./test/setup.js --recursive --exit",

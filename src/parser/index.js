@@ -4,9 +4,11 @@ const isString = require('lodash/isString');
 const { printMessage, formatMessage } = require('formatted-messages');
 
 const globalMessages = require('../messages');
+const { CurrentOperatingModes } = require('../operating-modes');
 const {
   ScriptKeys,
   ScriptTypes,
+  OperatingModes,
   BACK_COMMAND,
   QUIT_COMMAND,
   KEY_SEPARATOR,
@@ -24,6 +26,7 @@ const {
   isValidVariablesShape,
   getUndocumentedChoices,
   getOptionsKeysFromKey,
+  isAnOptionAndCommand,
   getScriptType,
   forceExit,
 } = require('../utility');
@@ -38,7 +41,7 @@ const messages = require('./messages');
  * @param {object} param.file   - the file to get the directory from to add to the script
  * @param {string} param.key    - the current key of file to get the directory from to add to the script
  */
-const addDirectoryToScript = ({ script, file, key }) => {
+const addDirectoryToAdvancedScript = ({ script, file, key }) => {
   const directory = new Directory(file.directory);
   script.updateDirectory({
     directoryKey: key,
@@ -55,7 +58,7 @@ const addDirectoryToScript = ({ script, file, key }) => {
  * @param {string} param.fileName - the name of the file with the command to add into the script
  * @param {string} param.key      - the current key of the file to get the command from
  */
-const addCommandToScript = ({ script, file, fileName, key }) => {
+const addCommandToAdvancedScript = ({ script, file, fileName, key }) => {
   const directives = [];
   if (isString(file.command)) {
     directives.push(file.command);
@@ -108,7 +111,7 @@ const addCommandToScript = ({ script, file, fileName, key }) => {
  * @param {string} param.optionsKey - option key to check
  * @param {string} param.parentKey  - parent key to use in error message if invalid
  */
-const checkIfOptionKeyIsValid = ({ fileName, optionsKey, parentKey }) => {
+const checkIfAdvancedOptionKeyIsValid = ({ fileName, optionsKey, parentKey }) => {
   Object.values(ScriptKeys).forEach(scriptKey => {
     if (optionsKey === scriptKey) {
       printMessage(
@@ -132,12 +135,12 @@ const checkIfOptionKeyIsValid = ({ fileName, optionsKey, parentKey }) => {
  * @param {string} param.fileName - the name of the file with the options to add into the script
  * @param {string} param.key      - the current key of the file to get the options from
  */
-const addOptionToScript = ({ script, file, fileName, key }) => {
+const addOptionToAdvancedScript = ({ script, file, fileName, key }) => {
   const optionsKeys = Object.keys(file.options);
   const choices = [];
 
   optionsKeys.forEach(optionsKey => {
-    checkIfOptionKeyIsValid({ fileName, optionsKey, parentKey: key });
+    checkIfAdvancedOptionKeyIsValid({ fileName, optionsKey, parentKey: key });
     // eslint-disable-next-line no-use-before-define
     parseAdvancedScript({
       script,
@@ -182,12 +185,12 @@ const addOptionToScript = ({ script, file, fileName, key }) => {
  */
 const parseAdvancedScript = ({ script, file, fileName, key }) => {
   if (ScriptKeys.DIRECTORY in file) {
-    addDirectoryToScript({ script, file, key });
+    addDirectoryToAdvancedScript({ script, file, key });
   }
   if (ScriptKeys.COMMAND in file) {
-    addCommandToScript({ script, file, fileName, key });
+    addCommandToAdvancedScript({ script, file, fileName, key });
   } else if (ScriptKeys.OPTIONS in file) {
-    addOptionToScript({ script, file, fileName, key });
+    addOptionToAdvancedScript({ script, file, fileName, key });
   }
 };
 
@@ -200,7 +203,7 @@ const parseAdvancedScript = ({ script, file, fileName, key }) => {
  *
  * @returns {string[]} choices - choices parsed from keys
  */
-const getChoicesFromKeys = ({ keys, startingKey = '' }) => {
+const getChoicesFromSimpleScriptKeys = ({ keys, startingKey = '' }) => {
   return (
     keys
       // Filter keys that don't start with the starting key
@@ -254,13 +257,22 @@ const addOrUpdateOptionToSimpleScript = ({ script, optionKey, choices }) => {
  * @param {Script} param.script - simple script to a command to
  * @param {object} param.file   - file to parse the command from
  * @param {string} param.key    - key to use to parse the command from the file
+ * @param {string[]} param.keys - keys used to check if the command is also an option
  */
-const addCommandToSimpleScript = ({ script, file, key }) => {
+const addCommandToSimpleScript = ({ script, file, key, keys }) => {
   const re = new RegExp(SIMPLE_SCRIPT_OPTION_SEPARATOR, 'g');
-  const commandKey = `${script.getName()}.${key.replace(re, KEY_SEPARATOR)}`;
+  let commandKey = `${script.getName()}.${key.replace(re, KEY_SEPARATOR)}`;
+  if (isAnOptionAndCommand({ key, keys })) {
+    commandKey += `${KEY_SEPARATOR}${key}`;
+  }
   const directive = file[key];
   const directives = [directive];
-  const command = new Command({ directives });
+  const hiddenDirectives = [];
+  if (CurrentOperatingModes.includes(OperatingModes.RUNNING_PACKAGE_JSON)) {
+    const hiddenDirective = `npm run ${key}`;
+    hiddenDirectives.push(hiddenDirective);
+  }
+  const command = new Command({ directives, hiddenDirectives });
   script.addCommand({ commandKey, command });
 };
 
@@ -271,7 +283,7 @@ const addCommandToSimpleScript = ({ script, file, key }) => {
  * @param {Script} param.script      - the simple script parsed from the file
  * @param {object|string} param.file - the file to parse the simple script from
  *
- * @returns {Script} script    - the simple script parsed from the file
+ * @returns {Script} script          - the simple script parsed from the file
  */
 const parseSimpleScript = ({ script, file }) => {
   if (isString(file)) {
@@ -286,22 +298,26 @@ const parseSimpleScript = ({ script, file }) => {
   addOrUpdateOptionToSimpleScript({
     script,
     optionKey: script.getName(),
-    choices: [...getChoicesFromKeys({ keys }), QUIT_COMMAND],
+    choices: [...getChoicesFromSimpleScriptKeys({ keys }), QUIT_COMMAND],
   });
 
   keys.forEach(key => {
     // Add command
-    addCommandToSimpleScript({ script, file, key });
+    addCommandToSimpleScript({ script, file, key, keys });
 
     // Add options
     const optionKeys = getOptionsKeysFromKey(key);
     optionKeys.forEach(optionKey => {
       // Add option
-      const choices = getChoicesFromKeys({ keys, startingKey: optionKey });
+      const choices = [
+        ...getChoicesFromSimpleScriptKeys({ keys, startingKey: optionKey }),
+        BACK_COMMAND,
+        QUIT_COMMAND,
+      ];
       addOrUpdateOptionToSimpleScript({
         script,
-        optionKey: `${script.getName()}.${optionKey}`,
-        choices: [...choices, BACK_COMMAND, QUIT_COMMAND],
+        choices,
+        optionKey: `${script.getName()}${KEY_SEPARATOR}${optionKey}`,
       });
     });
   });

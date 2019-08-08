@@ -147,6 +147,19 @@ const getNameFromKey = key => key.split(KEY_SEPARATOR).pop();
 const getParentKey = key => key.substr(0, key.lastIndexOf(KEY_SEPARATOR));
 
 /**
+ * Returns true if is an option and a command and false otherwise
+ *
+ * @param {object} param                   - object parameter
+ * @param {string} param.key               - key of an option, command or both
+ * @param {string[]} param.keys            - keys of options and commands
+ *
+ * @returns {boolean} isAnOptionAndCommand - true if is an option and a command and false otherwise
+ */
+const isAnOptionAndCommand = ({ key, keys }) => {
+  return keys.some(k => k.indexOf(`${key}${SIMPLE_SCRIPT_OPTION_SEPARATOR}`) === 0);
+};
+
+/**
  * Gets the option keys from a complete key
  *
  * @param {string} key            - complete key to parse for option keys
@@ -526,6 +539,7 @@ module.exports = {
   getFirstKey,
   getNameFromKey,
   getParentKey,
+  isAnOptionAndCommand,
   getOptionsKeysFromKey,
   throwError,
   isValidVariablesShape,
