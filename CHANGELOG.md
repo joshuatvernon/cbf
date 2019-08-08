@@ -1,4 +1,31 @@
 
+<a name="v2.0.6"></a>
+## [v2.0.6](https://github.com/joshuatvernon/cbf/compare/v2.0.5...v2.0.6)
+
+> 2019-08-08
+
+
+<a name="v2.0.5"></a>
+## [v2.0.5](https://github.com/joshuatvernon/cbf/compare/v2.0.4...v2.0.5)
+
+> 2019-08-07
+
+### Chore
+
+* updated example simple scripts README.md
+* updated example scripts README.md
+
+
+<a name="v2.0.4"></a>
+## [v2.0.4](https://github.com/joshuatvernon/cbf/compare/v2.0.3...v2.0.4)
+
+> 2019-08-07
+
+### Chore
+
+* updated changelog
+
+
 <a name="v2.0.3"></a>
 ## [v2.0.3](https://github.com/joshuatvernon/cbf/compare/v2.0.2...v2.0.3)
 
