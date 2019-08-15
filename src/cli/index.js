@@ -29,6 +29,7 @@ const {
   safeExit,
   isValidYamlFileName,
   hasPackageJsonFile,
+  loadJsonFile,
 } = require('../utility');
 const globalMessages = require('../messages');
 const Menu = require('../menu');
@@ -189,7 +190,12 @@ const handleNoOperations = () => {
   if (!isEmptyString(localCbfFileName)) {
     loadAndRunLocalCbfFile(localCbfFileName);
   } else if (hasPackageJsonFile()) {
-    runScriptsFromPackageJson();
+    const packageJson = loadJsonFile(PATH_TO_PACKAGE_JSON);
+    if (PACKAGE_JSON_SCRIPTS_PROPERTY in packageJson) {
+      runScriptsFromPackageJson();
+    } else {
+      runMenuOrHelp();
+    }
   } else {
     runMenuOrHelp();
   }

@@ -13,6 +13,9 @@ const messages = {
   scriptKeyUsedAsOption: {
     message: `Error parsing <secondary>{parentKey}<secondary> in <primary>{fileName}<primary> file.\n\nCannot use <secondary>{scriptKey}<secondary> tag as an option`,
   },
+  missingScriptStartingKey: {
+    message: `Error parsing <secondary>{fileName}<secondary> file. Expected <secondary>{scriptStartingKey}<secondary> tag to exist`,
+  },
 };
 
 module.exports = messages;

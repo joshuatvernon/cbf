@@ -385,6 +385,15 @@ class Parser {
     const script = new Script({
       name,
     });
+    if (!(script.getName() in jsonFile)) {
+      printMessage(
+        formatMessage(messages.missingScriptStartingKey, {
+          fileName,
+          scriptStartingKey: script.getName(),
+        }),
+      );
+      forceExit();
+    }
     if (scriptType === ScriptTypes.SIMPLE) {
       parseSimpleScript({
         script,
