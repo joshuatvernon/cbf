@@ -1,4 +1,14 @@
 
+<a name="v2.0.8"></a>
+## [v2.0.8](https://github.com/joshuatvernon/cbf/compare/v2.0.7...v2.0.8)
+
+> 2019-08-15
+
+### Chore
+
+* updated changelog
+
+
 <a name="v2.0.7"></a>
 ## [v2.0.7](https://github.com/joshuatvernon/cbf/compare/v2.0.6...v2.0.7)
 
