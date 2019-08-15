@@ -30,4 +30,4 @@ dev:
         publish:
           command: "npm publish"
     update-changelog:
-      command: "git fetch --tags && git-chglog -o CHANGELOG.md && git add . && git commit -m 'chore: updated changelog'"
+      command: "git fetch --tags && git-chglog -o CHANGELOG.md && git add . && git commit -m 'chore: updated changelog' && git push"

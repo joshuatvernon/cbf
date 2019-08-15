@@ -18,7 +18,8 @@
     "tag:build-annotated": "echo \"$(npm run --silent tag:latest-annotated)\n\n$(npm run --silent tag:changes-since-latest)\"",
     "tag:update-latest": "git tag -f \"$(npm run --silent tag:latest)\" \"$(npm run --silent tag:latest)\"^{} -a -m \"$(npm run --silent tag:build-annotated)\"",
     "version": "genversion --semi version.js && git add version.js",
-    "postversion": "npm run --silent tag:update-latest && git push && git push --follow-tags",
+    "branch-name": "git rev-parse --abbrev-ref HEAD",
+    "postversion": "npm run --silent tag:update-latest && git push -u origin $(npm run branch-name) && git push --follow-tags",
     "current-version": "echo $npm_package_version",
     "latest-published-version": "npm view cbf version"
   },
