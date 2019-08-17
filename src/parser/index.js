@@ -26,6 +26,7 @@ const {
   isValidVariablesShape,
   getUndocumentedChoices,
   getOptionsKeysFromKey,
+  getNameFromSimpleScriptKey,
   isAnOptionAndCommand,
   getScriptType,
   forceExit,
@@ -201,16 +202,27 @@ const parseAdvancedScript = ({ script, file, fileName, key }) => {
  * @param {string[]} param.keys      - keys to parse choices from
  * @param {string} param.startingKey - part of key to ignore
  *
- * @returns {string[]} choices - choices parsed from keys
+ * @returns {string[]} choices       - choices parsed from keys
  */
 const getChoicesFromSimpleScriptKeys = ({ keys, startingKey = '' }) => {
   return (
     keys
       // Filter keys that don't start with the starting key
-      .filter(key => key.indexOf(startingKey.replace(/\./g, SIMPLE_SCRIPT_OPTION_SEPARATOR)) === 0)
+      .filter(key => {
+        if (key.indexOf(`${startingKey.replace(/\./g, SIMPLE_SCRIPT_OPTION_SEPARATOR)}:`) === 0) {
+          return true;
+        }
+        if (key === startingKey.replace(/\./g, SIMPLE_SCRIPT_OPTION_SEPARATOR)) {
+          return true;
+        }
+        return startingKey === '';
+      })
       // Remove starting key from keys
       .map(key => {
         if (!isEmptyString(startingKey)) {
+          if (key === startingKey.replace(/\./g, SIMPLE_SCRIPT_OPTION_SEPARATOR)) {
+            return getNameFromSimpleScriptKey(key);
+          }
           const re = new RegExp(`${startingKey.replace(/\./g, SIMPLE_SCRIPT_OPTION_SEPARATOR)}:`);
           return key.replace(re, '');
         }
@@ -264,7 +276,7 @@ const addCommandToSimpleScript = ({ script, file, key, keys }) => {
   let commandKey = `${script.getName()}.${key.replace(re, KEY_SEPARATOR)}`;
   if (isAnOptionAndCommand({ key, keys })) {
     // Command is also an option, store the command one level deeper so it will be in the correct options choices list
-    commandKey += `${KEY_SEPARATOR}${key}`;
+    commandKey += `${KEY_SEPARATOR}${getNameFromSimpleScriptKey(key)}`;
   }
   const directive = file[key];
   const directives = [directive];
