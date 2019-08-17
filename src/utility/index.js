@@ -138,6 +138,15 @@ const getFirstKey = object => {
 const getNameFromKey = key => key.split(KEY_SEPARATOR).pop();
 
 /**
+ * Return the name of the simple script key (which is just the last word after the last colon)
+ *
+ * @param {string} key    - key to use to return the name from
+ *
+ * @returns {string} name - the name of the key
+ */
+const getNameFromSimpleScriptKey = key => key.split(SIMPLE_SCRIPT_OPTION_SEPARATOR).pop();
+
+/**
  * Return the key of the parent (the key is everything before the last occurrence of a period)
  *
  * @param {string} key         - key to use to return the parent key from
@@ -538,6 +547,7 @@ module.exports = {
   deleteJsonFile,
   getFirstKey,
   getNameFromKey,
+  getNameFromSimpleScriptKey,
   getParentKey,
   isAnOptionAndCommand,
   getOptionsKeysFromKey,

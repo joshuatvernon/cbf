@@ -1,4 +1,15 @@
 
+<a name="v2.0.9"></a>
+## [v2.0.9](https://github.com/joshuatvernon/cbf/compare/v2.0.8...v2.0.9)
+
+> 2019-08-17
+
+### Chore
+
+* updated tag npm script to push to origin if new branch
+* updated changelog
+
+
 <a name="v2.0.8"></a>
 ## [v2.0.8](https://github.com/joshuatvernon/cbf/compare/v2.0.7...v2.0.8)
 
