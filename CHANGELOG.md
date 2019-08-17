@@ -1,4 +1,15 @@
 
+<a name="v2.0.10"></a>
+## [v2.0.10](https://github.com/joshuatvernon/cbf/compare/v2.0.9...v2.0.10)
+
+> 2019-08-17
+
+### Chore
+
+* fixed branch-name npm command so npm version update tagging would work
+* updated changelog
+
+
 <a name="v2.0.9"></a>
 ## [v2.0.9](https://github.com/joshuatvernon/cbf/compare/v2.0.8...v2.0.9)
 
