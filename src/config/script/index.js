@@ -93,6 +93,8 @@ class Script {
             if (this.getOption(key)) {
               prompts.next(this.getOption(key));
             } else if (this.getCommand(key)) {
+              subscriber.unsubscribe();
+
               const command = this.getCommand(key);
               const directory = this.getDirectoryOrClosestParentDirectory(key);
               command.run({
