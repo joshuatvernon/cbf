@@ -1,0 +1,18 @@
+documentation:
+- '**/*.md'
+tests:
+- 'test/**/*'
+- '**/*.test.js'
+chore:
+- 'README.md'
+- 'CHANGELOG.md'
+- 'DEVELOPMENT.md'
+- 'cbf.yml'
+- 'package.json'
+- 'CODE_OF_CONDUCT.md'
+- 'LICENSE'
+- 'CONTRIBUTING.md'
+- 'yarn.lock'
+- 'yarn-error.log'
+release:
+- 'version.js'
