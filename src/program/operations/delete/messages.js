@@ -10,6 +10,10 @@ const messages = {
   deletedScript: {
     message: '\nDeleted <primary>{scriptName}<primary> script',
   },
+  dryRun: {
+    message:
+      '\nRunning in <primary>dry-run<primary> mode. <primary>{scriptName}<primary> script not deleted',
+  },
 };
 
 module.exports = messages;

@@ -5,18 +5,18 @@ const { CurrentOperatingModes } = require('../../../operating-modes');
 const { Operation } = require('../operation');
 
 /**
- * Run the documented operation
+ * Run the dry-run operation
  */
 const run = () => {
-  CurrentOperatingModes.add(OperatingModes.RUNNING_WITH_DOCUMENTATION);
+  CurrentOperatingModes.add(OperatingModes.DRY_RUN);
 };
 
 const operation = {
-  name: 'documented',
-  flag: 'd',
-  description: 'prepends the command to the questions when running a script',
+  name: 'dry-run',
+  flag: 'R',
+  description: 'prints the command that would have been run to stdout',
   args: [],
-  whitelist: ['run', 'json', 'dry-run'],
+  whitelist: ['run', 'json', 'documented', 'delete', 'delete-all'],
   run,
 };
 

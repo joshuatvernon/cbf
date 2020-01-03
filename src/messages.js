@@ -25,7 +25,8 @@ const messages = {
     },
   },
   unknownError: {
-    message: `Sorry, an unknown error occurred!\n\nPlease report this at <primary>{githubLink}<primary> or <primary>{npmLink}<primary>`,
+    message:
+      'Sorry, an unknown error occurred!\n\nPlease report this at <primary>{githubLink}<primary> or <primary>{npmLink}<primary>',
     defaultOptions: {
       npmLink: NPM_LINK,
       githubLink: GITHUB_LINK,
@@ -35,7 +36,8 @@ const messages = {
     message: '',
   },
   loadedScript: {
-    message: `Running <primary>{scriptName}<primary> script from <secondary>{fileName}<secondary> file\n`,
+    message:
+      'Running <primary>{scriptName}<primary> script from <secondary>{fileName}<secondary> file\n',
   },
   invalidYamlFile: {
     message: '<error>{fileName}<error> is an invalid yaml filename',
@@ -47,7 +49,7 @@ const messages = {
     message: '<error>{fileName}<error> is an invalid script filename',
   },
   runningScriptsFromPackageJson: {
-    message: `Running <secondary>scripts<secondary> from <primary>package.json<primary> file\n`,
+    message: 'Running <secondary>scripts<secondary> from <primary>package.json<primary> file\n',
   },
 };
 

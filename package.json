@@ -1,6 +1,6 @@
 {
   "name": "cbf",
-  "version": "2.0.10",
+  "version": "2.1.0",
   "description": "A package for creating scripts to store and run your most commonly used CLI commands for a repo or just in general",
   "main": "index.js",
   "scripts": {
@@ -68,7 +68,8 @@
     "genversion": "^2.1.1",
     "madge": "^3.4.4",
     "mocha": "^6.1.4",
-    "prettier": "1.18.2"
+    "prettier": "1.18.2",
+    "standard": "^14.3.1"
   },
   "publishConfig": {
     "access": "public"

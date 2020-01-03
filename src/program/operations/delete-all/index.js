@@ -4,8 +4,10 @@ const noop = require('lodash/noop');
 const { printMessage, formatMessage } = require('formatted-messages');
 
 const { GlobalConfig } = require('../../../config');
+const { OperatingModes } = require('../../../constants');
 const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 const { safeExit } = require('../../../utility');
+const { CurrentOperatingModes } = require('../../../operating-modes');
 const { Operation } = require('../operation');
 
 const messages = require('./messages');
@@ -22,6 +24,12 @@ const handleShouldDeleteAllScriptsAnswer = (answer, subscriber) => {
     subscriber.unsubscribe();
     safeExit();
   } else {
+    const dryRun = CurrentOperatingModes.includes(OperatingModes.DRY_RUN);
+    if (dryRun) {
+      printMessage(formatMessage(messages.dryRun));
+      safeExit();
+      return;
+    }
     GlobalConfig.removeAllScripts();
     GlobalConfig.removeAllScriptNames();
     GlobalConfig.save();
@@ -69,7 +77,7 @@ const operation = {
   flag: 'A',
   description: 'delete all previously saved scripts',
   args: [],
-  whitelist: [],
+  whitelist: ['dry-run'],
   run,
 };
 

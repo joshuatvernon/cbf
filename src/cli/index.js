@@ -216,16 +216,18 @@ const handleArguments = () => {
 
     const args = getArguments();
 
-    // Validate the arguments for all operations except `documented` which can be used in
+    // Validate the arguments for all operations except `documented` and `dry-run` which can be used in
     // conjunction with the `run` operation
-    const nonDocumentedOperations = operations.filter(
-      operation => operation !== Operations.get(OperationTypes.DOCUMENTED),
+    const nonDocumentedOrDryRunOperations = operations.filter(
+      operation =>
+        operation !== Operations.get(OperationTypes.DOCUMENTED) &&
+        operation !== Operations.get(OperationTypes.DRY_RUN),
     );
-    nonDocumentedOperations.forEach(operation => validateArgumentLength(operation, args));
+    nonDocumentedOrDryRunOperations.forEach(operation => validateArgumentLength(operation, args));
 
     operations.forEach(operation => operation.run(args));
 
-    if (isEmpty(nonDocumentedOperations)) {
+    if (isEmpty(nonDocumentedOrDryRunOperations)) {
       handleNoOperations();
     }
   }

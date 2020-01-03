@@ -5,9 +5,11 @@ const isEmpty = require('lodash/isEmpty');
 const { printMessage, formatMessage } = require('formatted-messages');
 
 const { GlobalConfig } = require('../../../config');
+const { OperatingModes } = require('../../../constants');
 const globalMessages = require('../../../messages');
 const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 const { safeExit } = require('../../../utility');
+const { CurrentOperatingModes } = require('../../../operating-modes');
 const Menu = require('../../../menu');
 const { Argument, Operation } = require('../operation');
 
@@ -30,6 +32,16 @@ const shouldDeleteScript = scriptName => {
         subscriber.unsubscribe();
         safeExit();
       } else {
+        const dryRun = CurrentOperatingModes.includes(OperatingModes.DRY_RUN);
+        if (dryRun) {
+          printMessage(
+            formatMessage(messages.dryRun, {
+              scriptName,
+            }),
+          );
+          safeExit();
+          return;
+        }
         GlobalConfig.removeScript(scriptName);
         GlobalConfig.removeScriptName(scriptName);
         GlobalConfig.save();
@@ -93,7 +105,7 @@ const operation = {
   flag: 'D',
   description: 'delete a previously saved script',
   args: [scriptNameArgument],
-  whitelist: [],
+  whitelist: ['dry-run'],
   run,
 };
 

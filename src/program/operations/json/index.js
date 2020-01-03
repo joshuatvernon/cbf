@@ -40,7 +40,7 @@ const operation = {
   flag: 'j',
   description: 'run scripts in a package.json file',
   args: [],
-  whitelist: ['documented'],
+  whitelist: ['documented', 'dry-run'],
   run,
 };
 
