@@ -96,7 +96,7 @@ const operation = {
   flag: 'r',
   description: 'run a previously saved script',
   args: [scriptNameArgument],
-  whitelist: ['documented'],
+  whitelist: ['documented', 'dry-run'],
   run,
 };
 

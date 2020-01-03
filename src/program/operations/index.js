@@ -5,6 +5,7 @@ const { OperationTypes } = require('../../constants');
 const DeleteAllOperation = require('./delete-all');
 const DeleteOperation = require('./delete');
 const DocumentedOperation = require('./documented');
+const DryRunOperation = require('./dry-run');
 const JsonOperation = require('./json');
 const ListOperation = require('./list');
 const PrintOperation = require('./print');
@@ -32,6 +33,9 @@ class Operations {
         break;
       case OperationTypes.DOCUMENTED:
         operation = DocumentedOperation;
+        break;
+      case OperationTypes.DRY_RUN:
+        operation = DryRunOperation;
         break;
       case OperationTypes.JSON:
         operation = JsonOperation;

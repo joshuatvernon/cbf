@@ -8,7 +8,7 @@ const cloneDeep = require('lodash/cloneDeep');
 const isEmpty = require('lodash/isEmpty');
 const { printMessage, formatMessage } = require('formatted-messages');
 
-const { DEFAULT_SHELL, PROGRAM_NAME } = require('../../../constants');
+const { DEFAULT_SHELL, PROGRAM_NAME, OperatingModes } = require('../../../constants');
 const {
   isEmptyString,
   absolutePath,
@@ -16,6 +16,7 @@ const {
   safeExit,
   forceExit,
 } = require('../../../utility');
+const { CurrentOperatingModes } = require('../../../operating-modes');
 const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
 
 const messages = require('./messages');
@@ -131,29 +132,63 @@ class Command {
       }
     }
 
+    const dryRun = CurrentOperatingModes.includes(OperatingModes.DRY_RUN);
+
     this.updateDirectivesWithVariables().then(() => {
       if (this.getMessage()) {
         printMessage(formatMessage(messages.commandMessage, { message: this.getMessage() }));
       }
       const directives = this.getDirectives();
-      if (directory && directives.length === 1) {
-        printMessage(
-          formatMessage(messages.runCommandInPath, {
-            command: directives[0],
-            path: directory.getPath(),
-          }),
-        );
-      } else if (directory && directives.length > 1) {
-        printMessage(
-          formatMessage(messages.runCommandsInPath, {
-            commands: directives[0],
-            path: directory.getPath(),
-          }),
-        );
-      } else if (!directory && directives.length === 1) {
-        printMessage(formatMessage(messages.runCommand, { command: directives[0] }));
-      } else if (!directory && directives.length > 1) {
-        printMessage(formatMessage(messages.runCommands, { commands: directives }));
+      if (directory && !isEmpty(directory.getPath()) && directives.length >= 1) {
+        if (dryRun) {
+          printMessage(
+            formatMessage(messages.runCommandInPathDryRunMode, {
+              command: directives[0],
+              path: directory.getPath(),
+            }),
+          );
+        } else {
+          printMessage(
+            formatMessage(messages.runCommandInPath, {
+              command: directives[0],
+              path: directory.getPath(),
+            }),
+          );
+        }
+      } else if (directory && !isEmpty(directory.getPath()) && directives.length > 1) {
+        if (dryRun) {
+          printMessage(
+            formatMessage(messages.runCommandsInPathDryRunMode, {
+              command: directives,
+              path: directory.getPath(),
+            }),
+          );
+        } else {
+          printMessage(
+            formatMessage(messages.runCommandsInPath, {
+              commands: directives[0],
+              path: directory.getPath(),
+            }),
+          );
+        }
+      } else if (
+        !directory ||
+        (directory && isEmpty(directory.getPath()) && directives.length === 1)
+      ) {
+        if (dryRun) {
+          printMessage(formatMessage(messages.runCommandDryRunMode, { command: directives[0] }));
+        } else {
+          printMessage(formatMessage(messages.runCommand, { command: directives[0] }));
+        }
+      } else if (
+        !directory ||
+        (directory && isEmpty(directory.getPath()) && directives.length > 1)
+      ) {
+        if (dryRun) {
+          printMessage(formatMessage(messages.runCommandsDryRunMode, { commands: directives }));
+        } else {
+          printMessage(formatMessage(messages.runCommands, { commands: directives }));
+        }
       }
 
       // Join directives
@@ -164,6 +199,11 @@ class Command {
       // If the directive will run `cbf` we safe exit the parent running `cbf`
       if (directive.indexOf(PROGRAM_NAME) !== -1) {
         safeExit();
+      }
+
+      if (dryRun) {
+        safeExit();
+        return;
       }
 
       const childProcess = spawn(

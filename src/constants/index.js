@@ -12,6 +12,7 @@ const OperatingModes = Object.freeze({
   RUNNING: Symbol('running'),
   RUNNING_WITH_DOCUMENTATION: Symbol('running-with-documentation'),
   RUNNING_PACKAGE_JSON: Symbol('running-package-json'),
+  DRY_RUN: Symbol('dry-run'),
 });
 
 // Script
@@ -31,6 +32,7 @@ const OperationTypes = Object.freeze({
   DELETE_ALL: Symbol('delete-all'),
   DELETE: Symbol('delete'),
   DOCUMENTED: Symbol('documented'),
+  DRY_RUN: Symbol('dry-run'),
   JSON: Symbol('json'),
   LIST: Symbol('list'),
   PRINT: Symbol('print'),

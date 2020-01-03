@@ -7,14 +7,38 @@ const messages = {
   commandMessage: {
     message: '\n{message}\n',
   },
+  runCommandDryRunMode: {
+    message:
+      '\nRunning in <primary>dry-run<primary> mode. Would have run <primary>{command}<primary>\n',
+  },
   runCommand: {
     message: '\nRunning <primary>{command}<primary>\n',
+  },
+  runCommandInPathDryRunMode: {
+    message:
+      '\nRunning in <primary>dry-run<primary> mode. Would have run <primary>{command}<primary> in {path}\n',
   },
   runCommandInPath: {
     message: '\nRunning <primary>{command}<primary> in {path}\n',
   },
+  runCommandsDryRunMode: {
+    message:
+      '\nRunning in <primary>dry-run<primary> mode. Would have run\n<primary>[commands]<primary>\n',
+    defaultOptions: {
+      commands: [],
+      separator: '\n',
+    },
+  },
   runCommands: {
     message: '\nRunning\n[commands]<primary>\n',
+    defaultOptions: {
+      commands: [],
+      separator: '\n',
+    },
+  },
+  runCommandsInPathDryRunMode: {
+    message:
+      '\nRunning in <primary>dry-run<primary> mode. Would have run commands in <primary>{path}\n[commands]<primary>\n',
     defaultOptions: {
       commands: [],
       separator: '\n',
@@ -35,6 +59,13 @@ const messages = {
     defaultOptions: {
       commands: [],
       separator: '\n',
+    },
+  },
+  dryRun: {
+    message:
+      '\nRunning in <primary>dry-run<primary> mode. Would have run:\n\n<secondary>{command}<secondary>',
+    defaultOptions: {
+      command: '',
     },
   },
 };

@@ -13,6 +13,9 @@ const messages = {
   noScriptsToDelete: {
     message: 'There are currently no scripts to delete',
   },
+  dryRun: {
+    message: '\nRunning in <primary>dry-run<primary> mode. Scripts not deleted',
+  },
 };
 
 module.exports = messages;
