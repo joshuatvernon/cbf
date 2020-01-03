@@ -9,7 +9,7 @@
     "lint:fix": "eslint \"./**/*.js\" --fix",
     "circular": "madge --circular ./index.js",
     "format": "prettier --write \"**/*.js\" -l \"warn\" && standard --fix",
-    "test": "mocha src --file ./test/setup.js --recursive --exit",
+    "test": "mocha src --file ./test/setup.js --recursive --exit || if [ \"$?\" = 1 ]; then echo 1; else echo 0; fi",
     "build": "npm install . -g",
     "clean": "npm uninstall . -g",
     "tag:latest": "echo $(git describe --tags --abbrev=0)",
