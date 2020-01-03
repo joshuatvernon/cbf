@@ -157,6 +157,7 @@ Options:
   -D, --delete [script name]        delete a previously saved script
   -A, --delete-all                  delete all previously saved scripts
   -d, --documented                  prepends the command to the questions when running a script
+  -R, --dry-run                     prints the command that would have been run to stdout
   -j, --json                        run scripts in a package json file
   -l, --list                        list previously saved scripts
   -p, --print [script name]         print a saved script
