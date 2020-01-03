@@ -10,7 +10,7 @@ const messages = {
     },
   },
   shellSet: {
-    message: `\nShell was set to <primary>{shell}<primary>`,
+    message: '\nShell was set to <primary>{shell}<primary>',
   },
 };
 

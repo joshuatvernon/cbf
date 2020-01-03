@@ -8,7 +8,11 @@ dev:
     clean:
       command: "npm run clean"
     lint:
-      command: "npm run lint"
+      options:
+        lint:
+          command: "npm run lint"
+        fix:
+          command: "npm run lint:fix"
     test:
       command: "npm run test"
     npm:
