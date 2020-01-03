@@ -10,6 +10,8 @@ __CBF__ 🦥is a simple CLI tool for developers who _can't be f#@!'d_ learning o
 
 Developers build scripts that can either be saved directly to __CBF__ or loaded on the fly from a local `cbf.yml` file. The script will then serve as living, breathing runnable documentation for new starters, infrequent contributors or just developers who _can't be f#@!'d_ learning or remembering all the commands.
 
+Check out the [wiki](https://github.com/joshuatvernon/cbf/wiki) to get started!
+
 ### Installation
 
 ```sh
@@ -139,7 +141,7 @@ _Can't be f#@!'d_ writing a __CBF__ script? Well guess what? You can just run `c
 
 _Note: If there is a local `cbf.yml` file it will always instead of a `package.json` file when just using `cbf` or `cbf -d`. However, you can manually choose to run the `scripts` from a `package.json` by running `cbf -j` or `cbf -dj`._
 
-### Options
+### Usage
 
 ```
 λ cbf -h
