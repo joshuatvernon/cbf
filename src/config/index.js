@@ -13,6 +13,7 @@ const {
   SCRIPTS_DIRECTORY_PATH,
   DEFAULT_SHELL,
   JSON_SPACES_FORMATTING,
+  DEFAULT_NPM_ALIAS,
 } = require('../constants');
 const {
   isEmptyString,
@@ -38,13 +39,15 @@ const loadConfigJson = () => fse.readJsonSync(CONFIG_FILE_PATH);
  *
  * @param {object} param                - object parameter
  * @param {string} param.shell          - shell to save to the config.json
+ * @param {string} param.npmAlias       - NPM alias to save to the config.json
  * @param {string[]} param.scriptNames  - script names to save to the config.json
  */
-const saveConfigJson = ({ shell, scriptNames }) => {
+const saveConfigJson = ({ shell, npmAlias, scriptNames }) => {
   fse.outputJsonSync(
     CONFIG_FILE_PATH,
     {
       shell,
+      npmAlias,
       scriptNames,
     },
     {
@@ -62,11 +65,18 @@ class Config {
    *
    * @param {object} param               - object parameter
    * @param {string} param.shell         - the config shell
+   * @param {string} param.npmAlias      - the config NPM alias
    * @param {string[]} param.scriptNames - the config script names
    * @param {object} param.scripts       - the config scripts
    */
-  constructor({ shell = DEFAULT_SHELL, scriptNames = [], scripts = {} } = {}) {
+  constructor({
+    shell = DEFAULT_SHELL,
+    npmAlias = DEFAULT_NPM_ALIAS,
+    scriptNames = [],
+    scripts = {},
+  } = {}) {
     this.shell = shell;
+    this.npmAlias = npmAlias;
     this.scriptNames = scriptNames;
     this.scripts = scripts;
   }
@@ -93,12 +103,14 @@ class Config {
   load() {
     // Set properties to default
     this.updateShell(DEFAULT_SHELL);
+    this.updateNPMAlias(DEFAULT_NPM_ALIAS);
     this.removeAllScriptNames();
     this.removeAllScripts();
 
     if (fse.pathExistsSync(CONFIG_FILE_PATH)) {
-      const { shell, scriptNames } = loadConfigJson();
+      const { shell, npmAlias, scriptNames } = loadConfigJson();
       this.updateShell(shell);
+      this.updateNPMAlias(npmAlias);
       scriptNames.forEach(scriptName => this.addScriptName(scriptName));
       scriptNames
         // Map saved script name to yaml or json file path
@@ -166,6 +178,7 @@ class Config {
 
     saveConfigJson({
       shell: this.shell,
+      npmAlias: this.npmAlias,
       scriptNames: this.scriptNames,
     });
   }
@@ -186,6 +199,24 @@ class Config {
    */
   updateShell(shell) {
     this.shell = shell;
+  }
+
+  /**
+   * Return the currently set NPM alias
+   *
+   * @returns {string} npmAlias - currently set NPM alias
+   */
+  getNPMAlias() {
+    return this.npmAlias;
+  }
+
+  /**
+   * Set the current NPM alias
+   *
+   * @param {string} npmAlias - the configured NPM alias to run scripts from package.json with
+   */
+  updateNPMAlias(npmAlias) {
+    this.npmAlias = npmAlias;
   }
 
   /**
