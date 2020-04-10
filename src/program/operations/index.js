@@ -12,6 +12,7 @@ const PrintOperation = require('./print');
 const RunOperation = require('./run');
 const SaveOperation = require('./save');
 const ShellOperation = require('./shell');
+const NPMAliasOperation = require('./npm-alias');
 
 class Operations {
   /**
@@ -54,6 +55,9 @@ class Operations {
         break;
       case OperationTypes.SHELL:
         operation = ShellOperation;
+        break;
+      case OperationTypes.NPM_ALIAS:
+        operation = NPMAliasOperation;
         break;
     }
     return operation;

@@ -39,6 +39,7 @@ const OperationTypes = Object.freeze({
   RUN: Symbol('run'),
   SAVE: Symbol('save'),
   SHELL: Symbol('shell'),
+  NPM_ALIAS: Symbol('npm-alias'),
 });
 const SCRIPT_EXTENSIONS = ['.yml', '.simple.yml', '.json', '.simple.json'];
 const DEFAULT_OPTIONS_MESSAGE = 'Choose an option';
@@ -62,6 +63,7 @@ const GITHUB_LINK = 'https://github.com/joshuatvernon/cbf';
 
 // Paths
 const DEFAULT_SHELL = '/bin/bash';
+const DEFAULT_NPM_ALIAS = 'npm';
 const CONFIG_FILE_PATH = `${__dirname}/../../config/config.json`;
 const SCRIPTS_DIRECTORY_PATH = `${__dirname}/../../config/scripts`;
 const LOCAL_YAML_FILE_NAME = `${PROGRAM_NAME}.yml`;
@@ -102,6 +104,7 @@ module.exports = {
   NPM_LINK,
   GITHUB_LINK,
   DEFAULT_SHELL,
+  DEFAULT_NPM_ALIAS,
   CONFIG_FILE_PATH,
   SCRIPTS_DIRECTORY_PATH,
   LOCAL_YAML_FILE_NAME,

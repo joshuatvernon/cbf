@@ -156,7 +156,6 @@ const loadAndRunLocalCbfFile = fileName => {
  * Run menu if there are any saved scripts and help otherwise
  */
 const runMenuOrHelp = () => {
-  GlobalConfig.load();
   if (isEmpty(Object.keys(GlobalConfig.getScripts()))) {
     commander.help();
   } else {

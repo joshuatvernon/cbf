@@ -10,6 +10,7 @@ const {
   PACKAGE_JSON_SCRIPTS_PROPERTY,
   OperatingModes,
 } = require('../../../constants');
+const { GlobalConfig } = require('../../../config');
 const { hasPackageJsonFile, safeExit } = require('../../../utility');
 const { CurrentOperatingModes } = require('../../../operating-modes');
 const { Operation } = require('../operation');
@@ -20,6 +21,8 @@ const messages = require('./messages');
  * Run the package.json operation
  */
 const run = () => {
+  GlobalConfig.load();
+  const npmAlias = GlobalConfig.getNPMAlias();
   CurrentOperatingModes.add(OperatingModes.RUNNING_PACKAGE_JSON);
   if (!hasPackageJsonFile()) {
     printMessage(formatMessage(messages.noPackageJsonFile));
@@ -29,6 +32,7 @@ const run = () => {
       fileName: PATH_TO_PACKAGE_JSON,
       scriptType: ScriptTypes.SIMPLE,
       scriptStartingKey: PACKAGE_JSON_SCRIPTS_PROPERTY,
+      npmAlias,
     });
     printMessage(formatMessage(globalMessages.runningScriptsFromPackageJson));
     script.run();

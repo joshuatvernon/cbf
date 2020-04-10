@@ -271,7 +271,13 @@ const addOrUpdateOptionToSimpleScript = ({ script, optionKey, choices }) => {
  * @param {string} param.key    - key to use to parse the command from the file
  * @param {string[]} param.keys - keys used to check if the command is also an option
  */
-const addCommandToSimpleScript = ({ script, file, key, keys }) => {
+const addCommandToSimpleScript = ({
+    script,
+    file,
+    key,
+    keys,
+    npmAlias
+  }) => {
   const re = new RegExp(SIMPLE_SCRIPT_OPTION_SEPARATOR, 'g');
   let commandKey = `${script.getName()}.${key.replace(re, KEY_SEPARATOR)}`;
   if (isAnOptionAndCommand({ key, keys })) {
@@ -282,7 +288,7 @@ const addCommandToSimpleScript = ({ script, file, key, keys }) => {
   const directives = [directive];
   const hiddenDirectives = [];
   if (CurrentOperatingModes.includes(OperatingModes.RUNNING_PACKAGE_JSON)) {
-    const hiddenDirective = `npm run ${key}`;
+    const hiddenDirective = `${npmAlias} run ${key}`;
     hiddenDirectives.push(hiddenDirective);
   }
   const command = new Command({ directives, hiddenDirectives });
@@ -298,7 +304,11 @@ const addCommandToSimpleScript = ({ script, file, key, keys }) => {
  *
  * @returns {Script} script          - the simple script parsed from the file
  */
-const parseSimpleScript = ({ script, file }) => {
+const parseSimpleScript = ({
+    script,
+    file,
+    npmAlias
+  }) => {
   if (isString(file)) {
     const command = new Command({ directives: [file] });
     script.addCommand({ commandKey: script.getName(), command });
@@ -316,7 +326,13 @@ const parseSimpleScript = ({ script, file }) => {
 
   keys.forEach(key => {
     // Add command
-    addCommandToSimpleScript({ script, file, key, keys });
+    addCommandToSimpleScript({
+      script,
+      file,
+      key,
+      keys,
+      npmAlias
+    });
 
     // Add options
     const optionKeys = getOptionsKeysFromKey(key);
@@ -386,6 +402,7 @@ class Parser {
     fileName,
     scriptType = getScriptType(fileName),
     scriptStartingKey = '',
+    npmAlias,
   }) {
     if (!isValidJsonFileName(fileName)) {
       printMessage(formatMessage(globalMessages.invalidJsonFile, { fileName }));
@@ -410,6 +427,7 @@ class Parser {
       parseSimpleScript({
         script,
         file: jsonFile[script.getName()],
+        npmAlias,
       });
     } else {
       parseAdvancedScript({
