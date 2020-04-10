@@ -13,6 +13,7 @@ const { GlobalConfig } = require('../config');
 const { Operations, OperationTypes } = require('../program');
 const {
   ScriptTypes,
+  OperatingModes,
   PROGRAM_NAME,
   PATH_TO_LOCAL_YAML,
   PATH_TO_LOCAL_SIMPLE_YAML,
@@ -21,6 +22,7 @@ const {
   PATH_TO_PACKAGE_JSON,
   PACKAGE_JSON_SCRIPTS_PROPERTY,
 } = require('../constants');
+const { CurrentOperatingModes } = require('../operating-modes');
 const Parser = require('../parser');
 const { commander } = require('../shims/commander');
 const {
@@ -172,10 +174,12 @@ const runMenuOrHelp = () => {
  * Run scripts from package.json
  */
 const runScriptsFromPackageJson = () => {
+  CurrentOperatingModes.add(OperatingModes.RUNNING_PACKAGE_JSON);
   const script = Parser.getScriptFromJsonFile({
     fileName: PATH_TO_PACKAGE_JSON,
     scriptStartingKey: PACKAGE_JSON_SCRIPTS_PROPERTY,
     scriptType: ScriptTypes.SIMPLE,
+    npmAlias: GlobalConfig.getNPMAlias(),
   });
   printMessage(formatMessage(globalMessages.runningScriptsFromPackageJson));
   script.run();

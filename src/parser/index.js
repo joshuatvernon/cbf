@@ -292,11 +292,12 @@ const addCommandToSimpleScript = ({ script, file, key, keys, npmAlias }) => {
 /**
  * Parse a simple script
  *
- * @param {object} param             - object parameter
- * @param {Script} param.script      - the simple script parsed from the file
- * @param {object|string} param.file - the file to parse the simple script from
+ * @param {object} param                 - object parameter
+ * @param {Script} param.script          - the simple script parsed from the file
+ * @param {object|string} param.file     - the file to parse the simple script from
+ * @param {object|string} param.npmAlias - the NPM alias to use in the hidden directive to call the command with
  *
- * @returns {Script} script          - the simple script parsed from the file
+ * @returns {Script} script              - the simple script parsed from the file
  */
 const parseSimpleScript = ({ script, file, npmAlias }) => {
   if (isString(file)) {
@@ -385,6 +386,7 @@ class Parser {
    * @param {string} param.fileName          - the name of the json file to be loaded and parsed
    * @param {string} param.scriptStartingKey - the key to start at e.g. 'scripts' in a NPM package.json file
    * @param {string} param.scriptType        - the type of script to parse (simple or advanced)
+   * @param {string} param.npmAlias          - the NPM alias used to build the hidden directive used to call the command
    *
    * @returns {Script} script                - the script loaded into memory
    */
