@@ -69,7 +69,12 @@ class Config {
    * @param {string[]} param.scriptNames - the config script names
    * @param {object} param.scripts       - the config scripts
    */
-  constructor({ shell = DEFAULT_SHELL, npmAlias = DEFAULT_NPM_ALIAS, scriptNames = [], scripts = {} } = {}) {
+  constructor({
+    shell = DEFAULT_SHELL,
+    npmAlias = DEFAULT_NPM_ALIAS,
+    scriptNames = [],
+    scripts = {},
+  } = {}) {
     this.shell = shell;
     this.npmAlias = npmAlias;
     this.scriptNames = scriptNames;
@@ -208,7 +213,7 @@ class Config {
   /**
    * Set the current NPM alias
    *
-   * @param {string} shell - the configured NPM alias to run scripts from package.json with
+   * @param {string} npmAlias - the configured NPM alias to run scripts from package.json with
    */
   updateNPMAlias(npmAlias) {
     this.npmAlias = npmAlias;

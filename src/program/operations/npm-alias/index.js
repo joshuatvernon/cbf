@@ -1,25 +1,12 @@
 #!/usr/bin/env node
 
 const noop = require('lodash/noop');
-const {
-  printMessage,
-  formatMessage
-} = require('formatted-messages');
+const { printMessage, formatMessage } = require('formatted-messages');
 
-const {
-  GlobalConfig
-} = require('../../../config');
-const {
-  prompts,
-  inquirerPrompts,
-  InquirerPromptTypes
-} = require('../../../shims/inquirer');
-const {
-  safeExit
-} = require('../../../utility');
-const {
-  Operation
-} = require('../operation');
+const { GlobalConfig } = require('../../../config');
+const { prompts, inquirerPrompts, InquirerPromptTypes } = require('../../../shims/inquirer');
+const { safeExit } = require('../../../utility');
+const { Operation } = require('../operation');
 
 const messages = require('./messages');
 
@@ -44,9 +31,7 @@ const handleAnswerNPMAliasQuestion = npmAlias => {
  */
 const run = () => {
   const subscriber = inquirerPrompts.subscribe(
-    ({
-      answer
-    }) => {
+    ({ answer }) => {
       handleAnswerNPMAliasQuestion(answer);
       subscriber.unsubscribe();
       safeExit();
@@ -58,14 +43,15 @@ const run = () => {
   prompts.next({
     type: InquirerPromptTypes.INPUT,
     name: 'npm-alias',
-    message: formatMessage(messages.npmAliasQuestion)
+    message: formatMessage(messages.npmAliasQuestion),
   });
 };
 
 const operation = {
   name: 'npm-alias',
   flag: 'N',
-  description: 'set an alias that should be ran instead of npm when running scripts in a package.json',
+  description:
+    'set an alias that should be ran instead of npm when running scripts in a package.json',
   args: [],
   whitelist: [],
   run,

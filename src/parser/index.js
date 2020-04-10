@@ -271,13 +271,7 @@ const addOrUpdateOptionToSimpleScript = ({ script, optionKey, choices }) => {
  * @param {string} param.key    - key to use to parse the command from the file
  * @param {string[]} param.keys - keys used to check if the command is also an option
  */
-const addCommandToSimpleScript = ({
-    script,
-    file,
-    key,
-    keys,
-    npmAlias
-  }) => {
+const addCommandToSimpleScript = ({ script, file, key, keys, npmAlias }) => {
   const re = new RegExp(SIMPLE_SCRIPT_OPTION_SEPARATOR, 'g');
   let commandKey = `${script.getName()}.${key.replace(re, KEY_SEPARATOR)}`;
   if (isAnOptionAndCommand({ key, keys })) {
@@ -304,11 +298,7 @@ const addCommandToSimpleScript = ({
  *
  * @returns {Script} script          - the simple script parsed from the file
  */
-const parseSimpleScript = ({
-    script,
-    file,
-    npmAlias
-  }) => {
+const parseSimpleScript = ({ script, file, npmAlias }) => {
   if (isString(file)) {
     const command = new Command({ directives: [file] });
     script.addCommand({ commandKey: script.getName(), command });
@@ -331,7 +321,7 @@ const parseSimpleScript = ({
       file,
       key,
       keys,
-      npmAlias
+      npmAlias,
     });
 
     // Add options
