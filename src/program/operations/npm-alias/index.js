@@ -40,10 +40,13 @@ const run = () => {
     noop,
   );
 
+  GlobalConfig.load();
+  const npmAlias = GlobalConfig.getNPMAlias();
+
   prompts.next({
     type: InquirerPromptTypes.INPUT,
     name: 'npm-alias',
-    message: formatMessage(messages.npmAliasQuestion),
+    message: formatMessage(messages.npmAliasQuestion, { npmAlias }),
   });
 };
 
