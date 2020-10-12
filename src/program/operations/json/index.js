@@ -13,14 +13,17 @@ const {
 const { GlobalConfig } = require('../../../config');
 const { hasPackageJsonFile, safeExit } = require('../../../utility');
 const { CurrentOperatingModes } = require('../../../operating-modes');
-const { Operation } = require('../operation');
+const { Argument, Operation } = require('../operation');
 
 const messages = require('./messages');
 
 /**
  * Run the package.json operation
+ *
+ * @param {string[]} args - arguments passed to the save operation
  */
-const run = () => {
+const run = args => {
+  const filterProperties = args[0] ? args[0] : '';
   GlobalConfig.load();
   const npmAlias = GlobalConfig.getNPMAlias();
   CurrentOperatingModes.add(OperatingModes.RUNNING_PACKAGE_JSON);
@@ -32,6 +35,7 @@ const run = () => {
       fileName: PATH_TO_PACKAGE_JSON,
       scriptType: ScriptTypes.SIMPLE,
       scriptStartingKey: PACKAGE_JSON_SCRIPTS_PROPERTY,
+      filterProperties: filterProperties.split(','),
       npmAlias,
     });
     printMessage(formatMessage(globalMessages.runningScriptsFromPackageJson));
@@ -39,11 +43,12 @@ const run = () => {
   }
 };
 
+const argument = new Argument({ name: 'comma separated props', required: false });
 const operation = {
   name: 'json',
   flag: 'j',
   description: 'run scripts in a package.json file',
-  args: [],
+  args: [argument],
   whitelist: ['documented', 'dry-run'],
   run,
 };
