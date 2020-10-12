@@ -1,3 +1,37 @@
+<a name="v2.3.0"></a>
+
+## [v2.3.0](https://github.com/joshuatvernon/cbf/compare/v2.2.1...v2.3.0)
+
+> 2020-10-12
+
+<a name="v2.2.1"></a>
+
+## [v2.2.1](https://github.com/joshuatvernon/cbf/compare/v2.2.0...v2.2.1)
+
+> 2020-04-10
+
+<a name="v2.2.0"></a>
+
+## [v2.2.0](https://github.com/joshuatvernon/cbf/compare/v2.1.1...v2.2.0)
+
+> 2020-04-10
+
+<a name="v2.1.1"></a>
+
+## [v2.1.1](https://github.com/joshuatvernon/cbf/compare/v2.1.0...v2.1.1)
+
+> 2020-01-03
+
+<a name="v2.1.0"></a>
+
+## [v2.1.0](https://github.com/joshuatvernon/cbf/compare/v2.0.10...v2.1.0)
+
+> 2020-01-03
+
+### Chore
+
+- updated changelog
+
 <a name="v2.0.10"></a>
 
 ## [v2.0.10](https://github.com/joshuatvernon/cbf/compare/v2.0.9...v2.0.10)
