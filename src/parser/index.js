@@ -382,11 +382,12 @@ class Parser {
   /**
    * Parse a json file int commands, options, messages, variables and directories
    *
-   * @param {object} param                   - object parameter
-   * @param {string} param.fileName          - the name of the json file to be loaded and parsed
-   * @param {string} param.scriptStartingKey - the key to start at e.g. 'scripts' in a NPM package.json file
-   * @param {string} param.scriptType        - the type of script to parse (simple or advanced)
-   * @param {string} param.npmAlias          - the NPM alias used to build the hidden directive used to call the command
+   * @param {object}   param                   - object parameter
+   * @param {string}   param.fileName          - the name of the json file to be loaded and parsed
+   * @param {string}   param.scriptStartingKey - the key to start at e.g. 'scripts' in a NPM package.json file
+   * @param {string[]} param.filterProperties  - properties to filter out
+   * @param {string}   param.scriptType        - the type of script to parse (simple or advanced)
+   * @param {string}   param.npmAlias          - the NPM alias used to build the hidden directive used to call the command
    *
    * @returns {Script} script                - the script loaded into memory
    */
@@ -394,6 +395,7 @@ class Parser {
     fileName,
     scriptType = getScriptType(fileName),
     scriptStartingKey = '',
+    filterProperties,
     npmAlias,
   }) {
     if (!isValidJsonFileName(fileName)) {
@@ -415,17 +417,25 @@ class Parser {
       );
       forceExit();
     }
+
+    const file = jsonFile[script.getName()];
+    filterProperties.forEach(property => {
+      if (file[property]) {
+        // Found filtered property; removing property
+        delete file[property];
+      }
+    });
     if (scriptType === ScriptTypes.SIMPLE) {
       parseSimpleScript({
         script,
-        file: jsonFile[script.getName()],
+        file,
         npmAlias,
       });
     } else {
       parseAdvancedScript({
         script,
         fileName,
-        file: jsonFile[script.getName()],
+        file,
         key: name,
       });
     }
