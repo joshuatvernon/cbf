@@ -419,12 +419,14 @@ class Parser {
     }
 
     const file = jsonFile[script.getName()];
-    filterProperties.forEach(property => {
-      if (file[property]) {
-        // Found filtered property; removing property
-        delete file[property];
-      }
-    });
+    if (filterProperties) {
+      filterProperties.forEach(property => {
+        if (file[property]) {
+          // Found filtered property; removing property
+          delete file[property];
+        }
+      });
+    }
     if (scriptType === ScriptTypes.SIMPLE) {
       parseSimpleScript({
         script,
