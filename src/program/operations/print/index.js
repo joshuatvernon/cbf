@@ -23,24 +23,40 @@ const OPERATION_DESCRIPTION = 'print a saved script';
  * @param {string} scriptName - the name of the script to be printed
  */
 const printScript = scriptName => {
-  fse
-    .readFile(`${SCRIPTS_DIRECTORY_PATH}/${scriptName}.yml`)
-    .then(yamlFile => {
-      printMessage(
-        formatMessage(messages.printScript, {
-          scriptName,
-          script: yamlFile,
-        }),
-      );
-    })
-    .catch(error => {
-      printMessage(
-        formatMessage(messages.errorPrintingScript, {
-          scriptName,
-          error,
-        }),
-      );
-    });
+  let scriptPath = '';
+  if (fse.existsSync(`${SCRIPTS_DIRECTORY_PATH}/${scriptName}.yml`)) {
+    // Print script
+    scriptPath = `${SCRIPTS_DIRECTORY_PATH}/${scriptName}.yml`;
+  } else if (fse.existsSync(`${SCRIPTS_DIRECTORY_PATH}/${scriptName}.simple.yml`)) {
+    // Print simple script
+    scriptPath = `${SCRIPTS_DIRECTORY_PATH}/${scriptName}.simple.yml`;
+  }
+  if (scriptPath) {
+    fse
+      .readFile(scriptPath)
+      .then(script => {
+        printMessage(
+          formatMessage(messages.printScript, {
+            script,
+            scriptName,
+          }),
+        );
+      })
+      .catch(error => {
+        printMessage(
+          formatMessage(messages.errorPrintingScript, {
+            error,
+            scriptName,
+          }),
+        );
+      });
+  } else {
+    printMessage(
+      formatMessage(globalMessages.scriptDoesNotExist, {
+        scriptName,
+      }),
+    );
+  }
 };
 
 /**
